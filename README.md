@@ -1,7 +1,7 @@
-				NSAFlood
-				========
+NSAFlood
+--------
 
-	This directory contains the 1.0 release of NSAFlood
+This directory contains the 1.0 release of NSAFlood
 
 About
 -----
@@ -24,7 +24,7 @@ Verifying
 To verify the integrity of the archive contents, you need to check the signature of the MD5SUMS file, then compare the individual file sums, like follows:
 
 ```Shell
-gpg --verify MD5SUMS.SIG MD5SUMS
+gpg --verify MD5SUMS.sig MD5SUMS
 sha512sum file
 ```
 

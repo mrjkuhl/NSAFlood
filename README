@@ -20,7 +20,7 @@ Verifying
 
 To verify the integrity of the archive contents, you need to check the signature of the MD5SUMS file, then compare the individual file sums, like follows:
 
-	gpg --verify MD5SUMS.SIG MD5SUMS
+	gpg --verify MD5SUMS.sig MD5SUMS
 	sha512sum file
 
 If you do not have the public key needed to verify the MD5SUMS signature, download it as so:
