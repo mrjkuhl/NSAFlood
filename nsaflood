@@ -1,0 +1,121 @@
+#
+# Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+#!/bin/bash
+
+function getArg {
+
+	new=${1%%=*}
+
+	echo "$new"
+}
+
+function getArgVal {
+
+	new=${1##*=}
+
+	echo "$new"
+}
+
+HOST=""
+FILESIZE=1024
+PASSWORD=""
+PASSWORDLENGTH=64
+FLOODFILE="/tmp/nsaflood-$USER/floodfile"
+GARBAGEFILE="/tmp/nsaflood-$USER/garbagefile"
+
+for i in $@; do
+
+	if [ $(getArg $i) == "--host" ] || [ $(getArg $i) == "-h" ]; then
+
+		HOST=$(getArgVal $i)
+
+	elif [ $(getArg $i $SEPARATOR) == "--file-size" ] || [ $(getArg $i $SEPARATOR) == "-s" ]; then
+
+
+		FILESIZE=$((FILESIZE * $(getArgVal $i)))
+	fi
+done
+
+mkdir -p /tmp/nsaflood-joelc
+
+echo -ne "\nGenerating password...\n"
+
+PASSWORD=$(dd if=/dev/urandom bs=$PASSWORDLENGTH count=1 2> /dev/null)
+
+if [ $? -ne 0 ]; then
+
+	echo -ne "FAILURE: Password generation failed.\n"
+	echo -ne "REASON: dd failed to read from /dev/urandom.\n"
+	echo -ne "\nExiting"
+
+	exit
+fi
+
+PASSWORD=$(echo $PASSWORD | base64)
+
+if [ $? -ne 0 ]; then
+
+	echo -ne "FAILURE: Password generation failed.\n"
+	echo -ne "REASON: base64 failed to encode dd output.\n"
+	echo -ne "\nExiting"
+
+	exit
+fi
+
+echo -ne "Password successfully generated!\n"
+echo -ne "\nGenerating and encrypting file...\n"
+
+dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
+
+if [ $? -ne 0 ]; then
+
+	echo -ne "FAILURE: File generation failed.\n"
+	echo -ne "REASON: dd failed to read from /dev/urandom.\n"
+	echo -ne "\nExiting"
+
+	exit
+fi
+
+openssl enc -aes-256-cbc -k "$PASSWORD" -in $GARBAGEFILE -out $FLOODFILE
+
+if [ $? -ne 0 ]; then
+
+	echo -ne "FAILURE: File generation failed\n."
+	echo -ne "REASON: openssl failed to encrypt the file."
+	echo -ne "\nExiting"
+
+	exit
+fi
+
+rm $GARBAGEFILE
+
+echo -ne "Encrypted file generated!\n"
+echo -ne "\nTransferring encrypted file to $HOST\n\n"
+
+scp $FLOODFILE "$HOST:/dev/null"
+
+if [ $? -ne 0 ]; then
+
+	echo -ne "FAILURE: File transfer failed.\n"
+	echo -ne "REASON: scp failed to transfer the file.\n"
+	echo -ne "\nExiting"
+
+	exit
+fi
+
+rm $FLOODFILE
