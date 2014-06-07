@@ -31,12 +31,11 @@ function getArgVal {
 	echo "$new"
 }
 
+BANDWIDTH="2048"
 HOST=""
 FILESIZE=1024
-PASSWORD=""
-PASSWORDLENGTH=64
-FLOODFILE="/tmp/nsaflood-$USER/floodfile"
 GARBAGEFILE="/tmp/nsaflood-$USER/garbagefile"
+KEYFILE=""
 
 for i in $@; do
 
@@ -44,78 +43,57 @@ for i in $@; do
 
 		HOST=$(getArgVal $i)
 
-	elif [ $(getArg $i $SEPARATOR) == "--file-size" ] || [ $(getArg $i $SEPARATOR) == "-s" ]; then
+	elif [ $(getArg $i) == "--file-size" ] || [ $(getArg $i) == "-s" ]; then
 
 
 		FILESIZE=$((FILESIZE * $(getArgVal $i)))
+
+	elif [ $(getArg $i) == "--bandwidth" ] || [ $(getArg $i) == "-b" ]; then
+
+		BANDWIDTH=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--key-file" ] || [ $(getArg $i) == "-k" ]; then
+
+		KEYFILE=$(getArgVal $i)
+
 	fi
 done
 
 mkdir -p /tmp/nsaflood-$USER
 
-echo -ne "\nGenerating password...\n"
-
-PASSWORD=$(dd if=/dev/urandom bs=$PASSWORDLENGTH count=1 2> /dev/null)
-
-if [ $? -ne 0 ]; then
-
-	echo -ne "FAILURE: Password generation failed.\n"
-	echo -ne "REASON: dd failed to read from /dev/urandom.\n"
-	echo -ne "\nExiting"
-
-	exit
-fi
-
-PASSWORD=$(echo $PASSWORD | base64)
-
-if [ $? -ne 0 ]; then
-
-	echo -ne "FAILURE: Password generation failed.\n"
-	echo -ne "REASON: base64 failed to encode dd output.\n"
-	echo -ne "\nExiting"
-
-	exit
-fi
-
-echo -ne "Password successfully generated!\n"
-echo -ne "\nGenerating and encrypting file...\n"
+echo -ne "\nGenerating file...\n"
 
 dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
 
 if [ $? -ne 0 ]; then
 
-	echo -ne "FAILURE: File generation failed.\n"
-	echo -ne "REASON: dd failed to read from /dev/urandom.\n"
-	echo -ne "\nExiting"
+	echo -ne "FAILURE: File generation failed.\n\
+		REASON: dd failed to read from /dev/urandom.\n\
+		\nExiting"
 
 	exit
 fi
 
-openssl enc -aes-256-cbc -k "$PASSWORD" -in $GARBAGEFILE -out $FLOODFILE
+echo -ne "File generated!\n\
+	\nTransferring garbage file to $HOST\n\n"
+
+if [ -z "$KEYFILE" ]; then
+
+	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
+
+else
+
+	scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE "$HOST:/dev/null"
+
+fi
 
 if [ $? -ne 0 ]; then
 
-	echo -ne "FAILURE: File generation failed\n."
-	echo -ne "REASON: openssl failed to encrypt the file."
-	echo -ne "\nExiting"
+	echo -ne "FAILURE: File transfer failed.\n\
+		REASON: scp failed to transfer the file.\n\
+		\nExiting"
 
 	exit
 fi
 
 rm $GARBAGEFILE
-
-echo -ne "Encrypted file generated!\n"
-echo -ne "\nTransferring encrypted file to $HOST\n\n"
-
-scp $FLOODFILE "$HOST:/dev/null"
-
-if [ $? -ne 0 ]; then
-
-	echo -ne "FAILURE: File transfer failed.\n"
-	echo -ne "REASON: scp failed to transfer the file.\n"
-	echo -ne "\nExiting"
-
-	exit
-fi
-
-rm $FLOODFILE
