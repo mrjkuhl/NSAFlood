@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 1.1 release of NSAFlood
+This directory contains the 1.1.1 release of NSAFlood
 
 About
 -----
@@ -13,17 +13,14 @@ surveillance. NSAFlood achieves this goal through the transfer of encrypted data
 Installation
 ------------
 
-Instructions to install this program are contained within the file INSTALL.
+To install NSAFlood, you must execute the install script as root.
 
 Usage
 -----
 
-```Shell
-nsaflood -b=2048 -k=/home/user/.ssh/privkey -s=10 -h=user@remotehost
-```
+	nsaflood -b=2048 -k=/home/user/.ssh/privkey -s=10 -h=user@remotehost
 
-The arugment -b takes the bandwidth in Kilobits/second, -s takes file size in 
-Megabytes, and -k takes the fullpath of the private key file.
+See the man page for documentation.
 
 Licensing
 ---------
@@ -37,14 +34,10 @@ Verifying
 To verify the integrity of the archive contents, you need to check the signature
  of the MD5SUMS file, then compare the individual file sums, like follows:
 
-```Shell
-gpg --verify MD5SUMS.sig MD5SUMS
-sha512sum file
-```
+	gpg --verify MD5SUMS.sig MD5SUMS
+	sha512sum file
 
 If you do not have the public key needed to verify the MD5SUMS signature, 
 download it as so:
 
-```Shell
-gpg --keyserver keys.gnupg.net --recv-key 0x01139e11ff940f07
-```
+	gpg --keyserver keys.gnupg.net --recv-key 0x01139e11ff940f07

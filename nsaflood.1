@@ -1,0 +1,30 @@
+.TH NSAFLOOD 1 "06/07/2014" "1.1.1"
+.SH NAME
+nsaflood \- Flood the Internet with encrypted data
+.SH SYNOPSIS
+.B nsaflood
+[\fIoptions\fP]
+.SH DECRIPTION
+.B NSAFlood
+creates a file of junk data read from /dev/urandom, and transmits it across networked computers. NSAFlood was made specifically to combat Internet surveillance, by transmitting large amounts of encrypted data across the Internet, which the United States National Security Agency (NSA) must copy and store in its entirety, indefinatily, as is their policy for all encrypted Internet traffic.
+
+It is recommended that you set nsaflood to run periodically through your crontab, and that you use a strong password or key for the user and host that you target with nsaflood.
+.SH OPTIONS
+.TP
+
+.BR \-b=\fIKilobits/s\fR ", " \-\-bandwidth=\fIKilobits/s\fR
+	Limit the bandwidth used by the program. Default is 
+	2048 Kilobits/second. Measured by Kilobits/S.
+
+.TP
+.BR \-h=\fIuser@host\fR ", " \-\-host=\fIuser@host\fR
+	Username and IP address of target machine.
+
+.TP
+.BR \-k=\fIkeyfile\fR ", " \-\-key-file=\fIkeyfile\fR
+	Key which may be used to connect to the host in place of a 
+	password
+
+.TP
+.BR \-s=\fIsize\fR ", " \-\-file-size=\fIsize\fR
+	Size of the file to be transmitted, measured in Megabytes. 
