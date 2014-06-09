@@ -61,6 +61,11 @@ done
 
 mkdir -p /tmp/nsaflood-$USER
 
+if [ -f $GARBAGEFILE ]; then
+
+	rm $GARBAGEFILE
+fi
+
 echo -ne "\nGenerating file...\n"
 
 dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null

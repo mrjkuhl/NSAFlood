@@ -1,4 +1,12 @@
 
+1.1.2
+-----
+6/8/2014
+
+Bugs:
+- NSAFlood now checks for, and deletes $GARBAGEFILE before writing to 
+$GARBAGEFILE.
+
 1.1.1	
 -----
 6/8/2014

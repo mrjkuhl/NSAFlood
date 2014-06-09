@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 1.1.1 release of NSAFlood
+This directory contains the 1.1.2 release of NSAFlood
 
 About
 -----
