@@ -1,4 +1,11 @@
 
+1.1.3
+-----
+6/10/2014
+
+Bugs:
+- NSAFlood now uses mktemp to handle $GARBAGEFILE.
+
 1.1.2
 -----
 6/8/2014

@@ -34,7 +34,7 @@ function getArgVal {
 BANDWIDTH="2048"
 HOST=""
 FILESIZE=1024
-GARBAGEFILE="/tmp/nsaflood-$USER/garbagefile"
+GARBAGEFILE=""
 KEYFILE=""
 
 for i in $@; do
@@ -60,11 +60,7 @@ for i in $@; do
 done
 
 mkdir -p /tmp/nsaflood-$USER
-
-if [ -f $GARBAGEFILE ]; then
-
-	rm $GARBAGEFILE
-fi
+GARBAGEFILE=$(mktemp --tmpdir=/tmp/nsaflood-$USER/ garbagefile.XXXXXXX)
 
 echo -ne "\nGenerating file...\n"
 
@@ -74,7 +70,7 @@ if [ $? -ne 0 ]; then
 
 	echo -ne "FAILURE: File generation failed.\n\
 		REASON: dd failed to read from /dev/urandom.\n\
-		\nExiting"
+		\nExiting\n"
 
 	exit
 fi
@@ -96,7 +92,7 @@ if [ $? -ne 0 ]; then
 
 	echo -ne "FAILURE: File transfer failed.\n\
 		REASON: scp failed to transfer the file.\n\
-		\nExiting"
+		\nExiting\n"
 
 	exit
 fi
