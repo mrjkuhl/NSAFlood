@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 1.1.3 release of NSAFlood
+This directory contains the 1.2.0 release of NSAFlood
 
 About
 -----
@@ -21,6 +21,14 @@ Usage
 	nsaflood -b=2048 -k=/home/user/.ssh/privkey -s=10 -h=user@remotehost
 
 See the man page for documentation.
+
+To schedule nsaflood in the crontab, log in to root and use the nsaf-sched 
+program.
+
+	nsaf-sched -b=2048 -k=/home/user/.ssh/privkey -s=1000 -h-user@remotehost
+	nsaf-sched -r -h=user@remotehost
+
+See the nsaf-sched man page for documentation.
 
 Licensing
 ---------

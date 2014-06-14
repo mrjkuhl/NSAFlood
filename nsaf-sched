@@ -1,0 +1,301 @@
+#
+# Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+#!/bin/bash
+
+TMPDIR="/tmp/nsaf-sched-$USER"
+CRONFILE="/etc/crontab"
+
+function getArg {
+
+	new=${1%%=*}
+
+	echo "$new"
+}
+
+function getArgVal {
+
+	new=${1##*=}
+
+	echo "$new"
+}
+
+function findLine {
+
+	STRING=$1
+	SUBSTRING=$2
+
+	echo "$STRING" | grep -e "$SUBSTRING"
+}
+
+function testCriteria {
+
+	scheduleList=$1
+
+	TARGETSCHEDULE=$(findLine "$scheduleList" "--host=$HOST")
+
+	if [ ! -z $BANDWIDTH ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "--bandwidth=$BANDWIDTH ")
+	fi
+
+	if [ ! -z $FILESIZE ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "--file-size=$FILESIZE ")
+	fi
+
+	if [ ! -z $KEYFILE ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "--key-file=$KEYFILE");
+	fi
+
+	if [ ! -z $MINUTE ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$MINUTE")
+	fi
+
+	if [ ! -z $HOUR ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$HOUR")
+	fi
+
+	if [ ! -z $DAY ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$DAY")
+	fi
+
+	if [ ! -z $MONTH ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$MONTH")
+	fi
+
+	if [ ! -z $WEEKDAY ]; then
+
+		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$WEEKDAY")
+	fi
+
+	echo "$TARGETSCHEDULE"
+}
+
+function listSchedule {
+
+	TMP=$(cat $CRONFILE | grep -n "")
+
+	testCriteria "$TMP"
+}
+
+function deleteSchedule {
+
+	mkdir $TMPDIR
+	CRONFILETMP=$(mktemp --tmpdir=$TMPDIR cronfiletmp.XXXXXXX)
+
+	LINENUM=$1
+	TMP=$(cat $CRONFILE | grep -n "")
+
+	TARGETLINE=$(findLine "$TMP" "^$LINENUM:")
+
+	TMP=$(echo "$TMP" | xxd -p | tr -d '\n')
+	TARGETLINE=$(echo "$TARGETLINE" | xxd -p | tr -d '\n')
+
+	TMP=$(echo "$TMP" | sed "s/$TARGETLINE//")
+
+	TMP=$(echo "$TMP" | xxd -r -p)
+
+	echo "$TMP" | sed "s/[0-9]*://" > $CRONFILETMP
+
+	echo -ne "nsaflood schedule at line $LINENUM deleted.\n"
+
+	mv $CRONFILETMP $CRONFILE
+
+	rm -r $TMPDIR
+}
+
+BANDWIDTH=""
+HOST=""
+FILESIZE=""
+KEYFILE=""
+
+MINUTE=""
+HOUR=""
+DAY=""
+MONTH=""
+WEEKDAY=""
+CRONUSER=$USER
+
+LIST=0
+
+if [ $USER != "root" ]; then
+
+	echo -ne " You need to be root to edit the crontab.\n"\
+	" Exiting...\n"
+
+	exit 1
+fi
+
+for i in $@; do
+
+	if [ $(getArg $i) == "--host" ] || [ $(getArg $i) == "-h" ]; then
+
+		HOST=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--file-size" ] || [ $(getArg $i) == "-s" ]; then
+
+		FILESIZE=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--bandwidth" ] || [ $(getArg $i) == "-b" ]; then
+
+		BANDWIDTH=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--key-file" ] || [ $(getArg $i) == "-k" ]; then
+
+		KEYFILE=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--user" ] || [ $(getArg $i) == "-u" ]; then
+
+		CRONUSER=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--minute" ] || [ $(getArg $i) == "-mi" ]; then
+
+		MINUTE=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--hour" ] || [ $(getArg $i) == "-hr" ]; then
+
+		HOUR=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--day" ] || [ $(getArg $i) == "-d" ]; then
+
+		DAY=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--month" ] || [ $(getArg $i) == "-mo" ]; then
+
+		MONTH=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--week-day" ] || [ $(getArg $i) == "-wd" ]; then
+
+		WEEKDAY=$(getArgVal $i)
+
+	elif [ $(getArg $i) == "--list" ] || [ $(getArg $i) == "-l" ]; then
+
+		LIST=1
+
+	elif [ $(getArg $i) == "--delete" ] || [ $(getArg $i) == "-dl" ]; then
+
+		deleteSchedule $(getArgVal $i)
+
+		exit
+	fi
+done
+
+if [ $LIST -eq 1 ]; then
+
+	listSchedule
+
+	exit 0
+fi
+
+if [ -z $HOST ]; then
+
+	echo -ne " You must specify a destination user and host\n"\
+	" EXAMPLE: nsaf-sched --host=user@remotehost\n"\
+	" Exiting...\n"
+
+	exit 3
+fi
+
+if [ -z $MINUTE ] && [ -z $HOUR ] && [ -z $DAY ] && [ -z $MONTH ] && [ -z $WEEKDAY ]; then
+
+	echo -ne " ERROR: You must specify at least one time/date variable.\n\n"\
+	" EXAMPLE: \"nsaf-sched --file-size=1000 --key-file=~/.ssh/id_rsa --host=anon@ --hour=12\"\n"
+
+	exit 2
+fi
+
+NSAFTASK="$CRONUSER /usr/local/bin/nsaflood"
+
+if [ ! -z $BANDWIDTH ]; then
+
+	NSAFTASK="$NSAFTASK --bandwidth=$BANDWIDTH"
+else
+
+	NSAFTASK="$NSAFTASK --bandwidth=2048"
+fi
+
+if [ ! -z $FILESIZE ]; then
+
+	NSAFTASK="$NSAFTASK --file-size=$FILESIZE"
+else
+
+	NSAFTASK="$NSAFTASK --file-size=1"
+fi
+
+if [ ! -z $KEYFILE ]; then
+
+	NSAFTASK="$NSAFTASK --key-file=$KEYFILE"
+fi
+
+NSAFTASK="$NSAFTASK --host=$HOST"
+
+if [ ! -z $WEEKDAY ]; then
+
+	NSAFTASK="$WEEKDAY $NSAFTASK"
+
+else
+
+	NSAFTASK="* $NSAFTASK";
+fi
+
+if [ ! -z $MONTH ]; then
+
+	NSAFTASK="$MONTH $NSAFTASK"
+
+else
+
+	NSAFTASK="* $NSAFTASK";
+fi
+
+if [ ! -z $DAY ]; then
+
+	NSAFTASK="$DAY $NSAFTASK"
+
+else
+
+	NSAFTASK="* $NSAFTASK";
+fi
+
+if [ ! -z $HOUR ]; then
+
+	NSAFTASK="$HOUR $NSAFTASK"
+
+else
+
+	NSAFTASK="* $NSAFTASK"
+fi
+
+NSAFTASK=" $NSAFTASK"
+
+if [ ! -z $MINUTE ]; then
+
+	NSAFTASK="$MINUTE $NSAFTASK"
+
+else
+
+	NSAFTASK="* $NSAFTASK"
+fi
+
+echo "$NSAFTASK" >> $CRONFILE
+
+rm -r $TMPDIR

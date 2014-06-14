@@ -4,8 +4,11 @@ CURRENTDIR=$(pwd)
 DESTINATIONBIN="/usr/local/bin/"
 DESTINATIONMAN="/usr/share/man/man1/"
 FILEBIN="nsaflood"
+FILESCHED="nsaf-sched"
 FILEMAN="nsaflood.1.gz"
 FILEMANSRC="nsaflood.1"
+FILESCHEDMAN="nsaf-sched.1.gz"
+FILESCHEDMANSRC="nsaf-sched.1"
 
 if [ $USER != "root" ]; then
 
@@ -15,7 +18,7 @@ if [ $USER != "root" ]; then
 	exit 1
 fi
 
-echo -n "Moving $FILEBIN to $DESTINATIONBIN..."
+echo -ne "\n Moving $FILEBIN to $DESTINATIONBIN..."
 
 cp $CURRENTDIR/$FILEBIN $DESTINATIONBIN
 
@@ -29,19 +32,39 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -ne " success!\n"\
-"Updating file ownership and permissions on $FILEBIN..."
+" Updating file ownership and permissions on $FILEBIN..."
 
 chown root:root $DESTINATIONBIN/$FILEBIN
 chmod 755 $DESTINATIONBIN/$FILEBIN
 
+echo -ne " succes!\n\n"\
+" Moving $FILESCHED to $DESTINATIONBIN..."
+
+cp $CURRENTDIR/$FILESCHED $DESTINATIONBIN
+
+if [ $? -ne 0 ]; then
+
+	echo -ne "ERROR: Could not copy $FILESCHED to $DESTINATOINBIN\n"\
+	" This may be due to insufficent file permissions, or the partition being full.\n"\
+	" Exiting...\n"
+
+	exit 2
+fi
+
 echo -ne " success!\n"\
-"Compressing $FILEMANSRC and moving to $DESTINATIONMAN..."
+" Updating file ownership and permissions on $FILESCHED..."
+
+chown root:root $DESTINATIONBIN/$FILESCHED
+chmod 755 $DESTINATIONBIN/$FILESCHED
+
+echo -ne " success!\n\n"\
+" Compressing $FILEMANSRC and moving to $DESTINATIONMAN..."
 
 gzip --stdout $CURRENTDIR/$FILEMANSRC > $DESTINATIONMAN/$FILEMAN
 
 if [ $? -ne 0 ]; then
 
-	echo -ne " ERROR: Could not copy nsaflood.1.gz to $DESTINATIONMAN\n"\
+	echo -ne " ERROR: Could not copy $FILEMAN to $DESTINATIONMAN\n"\
 	"This may be due to insuffiencet file permissions, or the partition being full.\n"\
 	"Exiting...\n"
 
@@ -49,12 +72,33 @@ if [ $? -ne 0 ]; then
 fi
 
 echo -ne " success!\n"\
-"Updating file ownership and permissions of $FILEMAN..."
+" Updating file ownership and permissions of $FILEMAN..."
 
 chown root:root $DESTINATIONMAN/$FILEMAN
-chmod 755 $DESTINATIONMAN/$FILEMAN
+chmod 744 $DESTINATIONMAN/$FILEMAN
 
 echo -ne " success!\n\n"\
-"Installation of NSAFlood finished successfully.\n"
+" Compressing $FILESCHEDMANSRC and moving to $DESTINATIONMAN..."
+
+
+gzip --stdout $CURRENTDIR/$FILESCHEDMANSRC > $DESTINATIONMAN/$FILESCHEDMAN
+
+if [ $? -ne 0 ]; then
+
+	echo one " ERROR: Could not copy $FILESCHEDMAN to $DESTINATIONMAN\n"\
+	"This may be due to insufficient file permissions, or the partition being full."\
+	"Exiting...\n"
+
+	exit 2
+fi
+
+echo -ne " success!\n"\
+" Updating file ownership and permissions of $FILESCHEDMAN..."
+
+chown root:root $DESTINATIONMAN/$FILESCHEDMAN
+chmod 744 $DESTINATIONMAN/$FILESCHEDMAN
+
+echo -ne " success!\n\n"\
+" Installation of NSAFlood finished successfully.\n\n"
 
 exit 0

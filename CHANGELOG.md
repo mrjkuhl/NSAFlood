@@ -1,4 +1,21 @@
 
+1.2.0
+-----
+6/13/2014
+
+New:
+- Added nsaf-sched, NSAFlood scheduler.
+- Added nsaf-sched man page.
+
+Install
+- Updated according to nsaf-sched addition.
+
+nsaflood.1
+- Added mention of nsaf-sched in Description section
+
+Readme
+- Updated Usage section to include nsaf-sched.
+
 1.1.3
 -----
 6/10/2014

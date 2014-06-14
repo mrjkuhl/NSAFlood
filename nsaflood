@@ -45,7 +45,6 @@ for i in $@; do
 
 	elif [ $(getArg $i) == "--file-size" ] || [ $(getArg $i) == "-s" ]; then
 
-
 		FILESIZE=$((FILESIZE * $(getArgVal $i)))
 
 	elif [ $(getArg $i) == "--bandwidth" ] || [ $(getArg $i) == "-b" ]; then
@@ -55,28 +54,27 @@ for i in $@; do
 	elif [ $(getArg $i) == "--key-file" ] || [ $(getArg $i) == "-k" ]; then
 
 		KEYFILE=$(getArgVal $i)
-
 	fi
 done
 
 mkdir -p /tmp/nsaflood-$USER
 GARBAGEFILE=$(mktemp --tmpdir=/tmp/nsaflood-$USER/ garbagefile.XXXXXXX)
 
-echo -ne "\nGenerating file...\n"
+echo -ne "\n Generating file...\n"
 
 dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
 
 if [ $? -ne 0 ]; then
 
-	echo -ne "FAILURE: File generation failed.\n\
-		REASON: dd failed to read from /dev/urandom.\n\
-		\nExiting\n"
+	echo -ne " FAILURE: File generation failed.\n"\
+	"REASON: dd failed to read from /dev/urandom.\n"\
+	"\nExiting\n"
 
 	exit
 fi
 
-echo -ne "File generated!\n\
-	\nTransferring garbage file to $HOST\n\n"
+echo -ne " File generated!\n"\
+"\nTransferring garbage file to $HOST\n\n"
 
 if [ -z "$KEYFILE" ]; then
 
@@ -90,9 +88,9 @@ fi
 
 if [ $? -ne 0 ]; then
 
-	echo -ne "FAILURE: File transfer failed.\n\
-		REASON: scp failed to transfer the file.\n\
-		\nExiting\n"
+	echo -ne " FAILURE: File transfer failed.\n"\
+	"REASON: scp failed to transfer the file.\n"\
+	"\nExiting\n"
 
 	exit
 fi
