@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 1.2.0 release of NSAFlood
+This directory contains the 1.2.0 release of NSAFlood, hereby entitled "Spooky Agent."
 
 About
 -----
@@ -26,7 +26,8 @@ To schedule nsaflood in the crontab, log in to root and use the nsaf-sched
 program.
 
 	nsaf-sched -b=2048 -k=/home/user/.ssh/privkey -s=1000 -h-user@remotehost
-	nsaf-sched -r -h=user@remotehost
+	nsaf-sched --list -h=user@remotehost
+	nsaf-sched --delete=7
 
 See the nsaf-sched man page for documentation.
 
