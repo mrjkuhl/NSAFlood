@@ -1,3 +1,5 @@
+#!/bin/bash
+# vim: set ts=2 sw=2 tw=0 et :
 #
 # Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>
 #
@@ -15,8 +17,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#!/bin/bash
-
 TMPDIR="/tmp/nsaf-sched-$USER"
 CRONFILE="/etc/crontab"
 CRONFILEBACKUP="/etc/bk.crontab"
@@ -24,99 +24,74 @@ CRONFILEBACKUP="/etc/bk.crontab"
 VERSION="1.3.0"
 
 function isArg {
-
 	firstChar=$(echo "$1" | head -c 2)
-
 	if [ "$firstChar" == "--" ]; then
-
 		return 1
 	fi
 
 	firstChar=$(echo "$1" | head -c 1)
-
 	if [ "$firstChar" == "-" ]; then
-
 		return 2
-
 	else
-
 		return 3
 	fi
 }
 
 function printVersion {
-
 	echo -ne " nsaf-sched $VERSION\n"\
 	"Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>\n"\
 	"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
 }
 
 function findLine {
-
 	STRING=$1
 	SUBSTRING=$2
-
 	echo "$STRING" | grep -e "$SUBSTRING"
 }
 
 function testCriteria {
-
 	scheduleList=$1
-
 	TARGETSCHEDULE=$(findLine "$scheduleList" "--host=$HOST")
-
-	if [ ! -z $BANDWIDTH ]; then
-
+	if [ -n $BANDWIDTH ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "--bandwidth=$BANDWIDTH ")
 	fi
 
-	if [ ! -z $FILESIZE ]; then
-
+	if [ -n $FILESIZE ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "--file-size=$FILESIZE ")
 	fi
 
-	if [ ! -z $KEYFILE ]; then
-
+	if [ -n $KEYFILE ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "--key-file=$KEYFILE");
 	fi
 
-	if [ ! -z $MINUTE ]; then
-
+	if [ -n $MINUTE ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$MINUTE")
 	fi
 
-	if [ ! -z $HOUR ]; then
-
+	if [ -n $HOUR ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$HOUR")
 	fi
 
-	if [ ! -z $DAY ]; then
-
+	if [ -n $DAY ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$DAY")
 	fi
 
-	if [ ! -z $MONTH ]; then
-
+	if [ -n $MONTH ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$MONTH")
 	fi
 
-	if [ ! -z $WEEKDAY ]; then
-
+	if [ -n $WEEKDAY ]; then
 		TARGETSCHEDULE=$(findLine "$TARGETSCHEDULE" "$WEEKDAY")
 	fi
-
 	echo "$TARGETSCHEDULE"
 }
 
 function listSchedule {
-
 	TMP=$(cat $CRONFILE | grep -n "")
-
 	testCriteria "$TMP"
 }
 
 function deleteSchedule {
-
 	mkdir $TMPDIR
 	CRONFILETMP=$(mktemp --tmpdir=$TMPDIR cronfiletmp.XXXXXXX)
 
@@ -154,7 +129,6 @@ WEEKDAY=""
 CRONUSER=$USER
 
 if [ $UID != 0 ]; then
-
 	echo -ne " You need to be root to edit the crontab.\n"\
 	"Exiting...\n"
 
@@ -162,282 +136,168 @@ if [ $UID != 0 ]; then
 fi
 
 if [ ! -f $CRONFILEBACKUP ]; then
-
 	echo -ne "\n No backup of crontab found, creating $CRONFILEBACKUP\n"
-
 	cp $CRONFILE $CRONFILEBACKUP
 fi
 
 while [ $1 ]; do
-
 	isArg "$1"
 	isArgReturn=$?
 
 	if [ $isArgReturn -eq 1 ]; then
-
 		if [ "$1" == "--host" ]; then
-
 			HOST="$2"
-
 			shift
-
 		elif [ "$1" == "--file-size" ]; then
-
 			FILESIZE="$2"
-
 			shift
-
 		elif [ "$1" == "--bandwidth" ]; then
-
 			BANDWIDTH="$2"
-
 			shift
-
 		elif [ "$1" == "--key-file" ]; then
-
 			KEYFILE="$2"
-
 			shift
-
 		elif [ "$1" == "--user" ]; then
-
 			USER="$2"
-
 			shift
-
 		elif [ "$1" == "--minute" ]; then
-
 			MINUTE="$2"
-
 			shift
-
 		elif [ "$1" == "--hour" ]; then
-
 			HOUR="$2"
-
 			shift
-
 		elif [ "$1" == "--day" ]; then
-
 			DAY="$2"
-
 			shift
-
 		elif [ "$1" == "--month" ]; then
-
 			MONTH="$2"
-
 			shift
-
 		elif [ "$1" == "--week-day" ]; then
-
 			WEEKDAY="$2"
-
 			shift
-
 		elif [ "$1" == "--list" ]; then
-
 			listSchedule
-
 			exit 0
-
 		elif [ "$1" == "--delete" ]; then
-
 			deleteSchedule "$2"
-
 			exit 0
-
 		elif [ "$1" == "--version" ]; then
-
 			printVersion
-
 			exit 0
 		else
-
 			echo "No such argument exists"
-
 			exit 3
 		fi
-
 	elif [ $isArgReturn -eq 2 ]; then
-
 		if [ "$1" == "-ht" ]; then
-
 			HOST="$2"
-
 			shift
-
 		elif [ "$1" == "-s" ]; then
-
 			FILESIZE="$2"
-
 			shift
-
 		elif [ "$1" == "-b" ]; then
-
 			BANDWIDTH="$2"
-
 			shift
-
 		elif [ "$1" == "-k" ]; then
-
 			KEYFILE="$2"
-
 			shift
-
 		elif [ "$1" == "-u" ]; then
-
 			USER="$2"
-
 			shift
-
 		elif [ "$1" == "-mi" ]; then
-
 			MINUTE="$2"
-
 			shift
-
 		elif [ "$1" == "-hr" ]; then
-
 			HOUR="$2"
-
 			shift
-
 		elif [ "$1" == "-dy" ]; then
-
 			DAY="$2"
-
 			shift
-
 		elif [ "$1" == "-mo" ]; then
-
 			MONTH="$2"
-
 			shift
-
 		elif [ "$1" == "-wd" ]; then
-
 			WEEKDAY="$2"
-
 			shift
-
 		elif [ "$1" == "-l" ]; then
-
 			listSchedule
-
 			exit 0
-
 		elif [ "$1" == "-dl" ]; then
-
 			deleteSchedule "$2"
-
 			exit 0
-
 		elif [ "$1" == "-V" ]; then
-
 			printVersion
-
 			exit 0
 		else 
-
 			echo "No such argument exists"
-
 			exit 3
 		fi
 	else
-
 			echo ""
 	fi
-
 	shift
 done
 
 if [ -z $HOST ]; then
-
 	echo -ne " You must specify a destination user and host\n"\
 	"EXAMPLE: nsaf-sched --host=user@remotehost\n"\
 	"Exiting...\n"
-
 	exit 2
 fi
 
 if [ -z $MINUTE ] && [ -z $HOUR ] && [ -z $DAY ] && [ -z $MONTH ] && [ -z $WEEKDAY ]; then
-
 	echo -ne " ERROR: You must specify at least one time/date variable.\n\n"\
 	" EXAMPLE: \"nsaf-sched --file-size=1000 --key-file=~/.ssh/id_rsa --host=anon@ --hour=12\"\n"
-
 	exit 2
 fi
 
 NSAFTASK="$CRONUSER /usr/local/bin/nsaflood"
-
-if [ ! -z $BANDWIDTH ]; then
-
+if [ -n $BANDWIDTH ]; then
 	NSAFTASK="$NSAFTASK --bandwidth=$BANDWIDTH"
 else
-
 	NSAFTASK="$NSAFTASK --bandwidth=2048"
 fi
 
-if [ ! -z $FILESIZE ]; then
-
+if [ -n $FILESIZE ]; then
 	NSAFTASK="$NSAFTASK --file-size=$FILESIZE"
 else
-
 	NSAFTASK="$NSAFTASK --file-size=1"
 fi
 
-if [ ! -z $KEYFILE ]; then
-
+if [ -n $KEYFILE ]; then
 	NSAFTASK="$NSAFTASK --key-file=$KEYFILE"
 fi
 
 NSAFTASK="$NSAFTASK --host=$HOST"
-
-if [ ! -z $WEEKDAY ]; then
-
+if [ -n $WEEKDAY ]; then
 	NSAFTASK="$WEEKDAY $NSAFTASK"
-
 else
-
 	NSAFTASK="* $NSAFTASK";
 fi
 
-if [ ! -z $MONTH ]; then
-
+if [ -n $MONTH ]; then
 	NSAFTASK="$MONTH $NSAFTASK"
-
 else
-
 	NSAFTASK="* $NSAFTASK";
 fi
 
-if [ ! -z $DAY ]; then
-
+if [ -n $DAY ]; then
 	NSAFTASK="$DAY $NSAFTASK"
-
 else
-
 	NSAFTASK="* $NSAFTASK";
 fi
 
-if [ ! -z $HOUR ]; then
-
+if [ -n $HOUR ]; then
 	NSAFTASK="$HOUR $NSAFTASK"
-
 else
-
 	NSAFTASK="* $NSAFTASK"
 fi
 
 NSAFTASK=" $NSAFTASK"
 
-if [ ! -z $MINUTE ]; then
-
+if [ -n $MINUTE ]; then
 	NSAFTASK="$MINUTE $NSAFTASK"
-
 else
-
 	NSAFTASK="* $NSAFTASK"
 fi
 

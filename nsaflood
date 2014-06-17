@@ -1,3 +1,5 @@
+#!/bin/bash
+#  vim: set ts=2 sw=2 tw=0 et :
 #
 # Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>
 #
@@ -15,36 +17,31 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-#!/bin/bash
-
 VERSION="1.3.0"
 
-function isArg {
+printVersion() {
+	echo "NSAFlood $VERSION
+Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
 
-	firstChar=$(echo "$1" | head -c 2)
-
-	if [ "$firstChar" == "--" ]; then
-
-		return 1
-	fi
-
-	firstChar=$(echo "$1" | head -c 1)
-
-	if [ "$firstChar" == "-" ]; then
-
-		return 2
-
-	else
-
-		return 3
-	fi
+Written by Joel Cool-Panama and Tracerneo"
 }
 
-function printVersion {
+printUsage() {
+  cat <<EOF
+Usage:
+${0##*/} [options]
 
-	echo -ne " NSAFlood $VERSION\n"\
-	"Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>\n"\
-	"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+Options:
+  -H  --host        Host to connect to
+  -s  --file-size   Size of garbage file
+  -b  --bandwidth   Maximum bandwidth
+  -k  --key-file    Path to key files
+  -V  --version     Show version and exit
+  -h  --help        Show this help and exit
+EOF
 }
 
 BANDWIDTH="2048"
@@ -56,133 +53,68 @@ KEYFILE=""
 TMP=""
 
 while [ $1 ]; do
-
-	isArg "$1"
-	isArgReturn=$?
-
-	if [ $isArgReturn -eq 1 ]; then
-
-		if [ "$1" == "--host" ]; then
-
-			HOST="$2"
-
-			shift
-
-		elif [ "$1" == "--file-size" ]; then
-
-			TMP="$2"
-			FILESIZE=$((FILESIZE * TMP))
-
-			shift
-
-		elif [ "$1" == "--bandwidth" ]; then
-
-			BANDWIDTH="$2"
-
-			shift
-
-		elif [ "$1" == "--key-file" ]; then
-
-			KEYFILE="$2"
-
-			shift
-
-		elif [ "$1" == "--version" ]; then
-
-			printVersion
-
-			exit 0
-		else
-
-			echo "No such argument exists"
-
-			exit 3
-		fi
-
-	elif [ $isArgReturn -eq 2 ]; then
-
-		if [ "$1" == "-ht" ]; then
-
-			HOST="$2"
-
-			shift
-
-		elif [ "$1" == "-s" ]; then
-
-			TMP="$2"
-			FILESIZE=$((FILESIZE * TMP))
-
-			shift
-
-		elif [ "$1" == "-b" ]; then
-
-			BANDWIDTH="$2"
-
-			shift
-
-		elif [ "$1" == "-k" ]; then
-
-			KEYFILE="$2"
-
-			shift
-
-		elif [ "$1" == "-V" ]; then
-
-			printVersion
-
-			exit 0
-		else 
-
-			echo "No such argument exists"
-
-			exit 3
-		fi
-	else
-
-			echo ""
-	fi
-
-	shift
+  case $1 in 
+    -H | --host)
+      HOST=$2
+      shift 2
+      ;;
+    -s | --file-size)
+      TMP=$2
+      FILESIZE=$((FILESIZE * TMP))
+      shift 2
+      ;;
+    -b | --bandwidth)
+      BANDWIDTH=$2
+      shift 2
+      ;;
+    -k | --key-file)
+      KEYFILE=$2
+      shift 2
+      ;;
+    -V | --version)
+      printVersion
+      exit 0
+      ;;
+    -h | --help)
+      printUsage
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      printUsage
+      exit 1
+      ;;
+  esac
 done
 
-mkdir -p /tmp/nsaflood-$USER
-GARBAGEFILE=$(mktemp --tmpdir=/tmp/nsaflood-$USER/ garbagefile.XXXXXXX)
+GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
 
-echo -ne "\n Generating file...\n"
-
+echo "Generating file..."
 dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
 
 if [ $? -ne 0 ]; then
-
-	echo -ne " FAILURE: File generation failed.\n"\
-	"REASON: dd failed to read from /dev/urandom.\n"\
-	"\nExiting\n"
-
+	echo "FAILURE: File generation failed.
+REASON: dd failed to read from /dev/urandom.
+Exiting"
 	exit 1
 fi
 
-echo -ne " File generated!\n"\
-"\nTransferring garbage file to $HOST\n\n"
+echo -e "File generated!
+Transferring garbage file to $HOST\n"
 
-if [ -z "$KEYFILE" ]; then
-
-	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
-
-else
-
+if [ -r "$KEYFILE" ]; then
 	scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE "$HOST:/dev/null"
-
+else
+	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
 fi
 
 if [ $? -ne 0 ]; then
-
-	echo -ne " FAILURE: File transfer failed.\n"\
-	"REASON: scp failed to transfer the file.\n"\
-	"\nExiting\n"
-
+	echo "FAILURE: File transfer failed.
+REASON: scp failed to transfer the file.
+Exiting"
 	exit 2
 fi
 
-rm $GARBAGEFILE
+rm "$GARBAGEFILE"
 
 exit 0
