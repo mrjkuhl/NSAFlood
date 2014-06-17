@@ -1,4 +1,4 @@
-.TH NSAF-SCHED 1 "06/13/2014" "1.2.0"
+.TH NSAF-SCHED 1 "06/17/2014" "1.3.0"
 .SH NAME
 nsaf-sched \- Schedule NSAFlood
 .SH SYNOPSIS
@@ -17,17 +17,17 @@ It is recommended that you schedule NSAFlood to run sometime between midnight an
 	to limit the number of jobs selected for possible deletion.
 
 .TP
-.BR \-dl=\fIline\fR ", " \-\-delete=\fIline\fR
+.BR \-dl\ \fIline\fR ", " \-\-delete\ \fIline\fR
 	Delete the nsaflood job on the specified line number. Use
 	--list to get a list of all nsaflood jobs in the crontab
 	and their line numbers.
 .TP
-.BR \-u=\fIUser\fR ", " \-\-user=\fIUser\fR
+.BR \-u\ \fIUser\fR ", " \-\-user\ \fIUser\fR
 	The user you wish nsaflood to be run as. By default is 
 	equal to current user.
 
 .TP
-.BR \-b=\fIKilobits/s\fR ", " \-\-bandwidth=\fIKilobits/s\fR
+.BR \-b\ \fIKilobits/s\fR ", " \-\-bandwidth\ \fIKilobits/s\fR
 	Limit the bandwidth used by the nsaflood. Default is 
 	2048 Kilobits/second. Measured by Kilobits/S.
 
@@ -35,14 +35,14 @@ It is recommended that you schedule NSAFlood to run sometime between midnight an
 	specified bandwidth setting.
 
 .TP
-.BR \-h=\fIuser@host\fR ", " \-\-host=\fIuser@host\fR
+.BR \-h\ \fIuser@host\fR ", " \-\-host\ \fIuser@host\fR
 	Username and IP address of target machine.
 
 	Limit jobs selected as candidates for deletion to the 
 	specified user@host.
 
 .TP
-.BR \-k=\fIkeyfile\fR ", " \-\-key-file=\fIkeyfile\fR
+.BR \-k\ \fIkeyfile\fR ", " \-\-key-file\ \fIkeyfile\fR
 	Key which may be used to connect to the host in place of a 
 	password
 
@@ -50,9 +50,11 @@ It is recommended that you schedule NSAFlood to run sometime between midnight an
 	specified keyfile.
 
 .TP
-.BR \-s=\fIsize\fR ", " \-\-file-size=\fIsize\fR
+.BR \-s\ \fIsize\fR ", " \-\-file-size\ \fIsize\fR
 	Size of the file to be transmitted, measured in Megabytes. 
 
 	Limit jobs selected as candidates for deletion to the 
 	specified file size.
 
+.SH EXIT STATUS
+The program will return 0 if it is successfull. If the user is not root, it will return 1. If the user did not supply the necessary arguments, the return code will be 2. If the user supplies a bogus argument, the return code will be 3.
