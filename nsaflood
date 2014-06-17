@@ -89,8 +89,7 @@ done
 
 GARBAGEFILE=$(mktemp nsaflood-garbagefile.XXXX)
 
-echo -ne "\n Generating file...\n"
-
+echo "Generating file..."
 dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
 
 if [ $? -ne 0 ]; then
@@ -100,13 +99,13 @@ Exiting"
 	exit 1
 fi
 
-echo -e " File generated!
+echo -e "File generated!
 Transferring garbage file to $HOST\n"
 
 if [ -r "$KEYFILE" ]; then
-	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
-else
 	scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE "$HOST:/dev/null"
+else
+	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
 fi
 
 if [ $? -ne 0 ]; then
