@@ -87,7 +87,7 @@ while [ $1 ]; do
   esac
 done
 
-GARBAGEFILE=$(mktemp nsaflood-garbagefile.XXXX)
+GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
 
 echo "Generating file..."
 dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
