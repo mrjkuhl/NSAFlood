@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 1.2.0 release of NSAFlood, hereby entitled "Spooky Agent."
+This directory contains the 1.3.0 release of NSAFlood.
 
 About
 -----

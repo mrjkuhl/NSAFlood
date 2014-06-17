@@ -1,4 +1,22 @@
 
+1.3.0
+-----
+6/17/2014
+
+nsaflood:
+- Refactored argument handling.
+- Added -V and --version arguments, which return the version and licensing information.
+
+nsaf-sched:
+- Refactored argument handling.
+- Added -V and --version arguments, which return the version and licensing information.
+
+nsaflood.1:
+- Added "EXIT STATUS" section.
+
+nsaf-sched.1:
+- Added "EXIT STATUS" section.
+
 1.2.0
 -----
 6/13/2014
