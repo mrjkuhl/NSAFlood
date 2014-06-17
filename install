@@ -10,9 +10,9 @@ FILEMANSRC="nsaflood.1"
 FILESCHEDMAN="nsaf-sched.1.gz"
 FILESCHEDMANSRC="nsaf-sched.1"
 
-if [ $USER != "root" ]; then
+if [ $UID != 0 ]; then
 
-	echo -ne " Only root can install programs.\n"\
+  echo -ne " Only root can install programs.\n"\
 	"Exiting...\n"
 
 	exit 1
@@ -34,7 +34,7 @@ fi
 echo -ne " success!\n"\
 " Updating file ownership and permissions on $FILEBIN..."
 
-chown root:root $DESTINATIONBIN/$FILEBIN
+chown 0:0 $DESTINATIONBIN/$FILEBIN
 chmod 755 $DESTINATIONBIN/$FILEBIN
 
 echo -ne " succes!\n\n"\
@@ -54,7 +54,7 @@ fi
 echo -ne " success!\n"\
 " Updating file ownership and permissions on $FILESCHED..."
 
-chown root:root $DESTINATIONBIN/$FILESCHED
+chown 0:0 $DESTINATIONBIN/$FILESCHED
 chmod 755 $DESTINATIONBIN/$FILESCHED
 
 echo -ne " success!\n\n"\
@@ -74,7 +74,7 @@ fi
 echo -ne " success!\n"\
 " Updating file ownership and permissions of $FILEMAN..."
 
-chown root:root $DESTINATIONMAN/$FILEMAN
+chown 0:0 $DESTINATIONMAN/$FILEMAN
 chmod 744 $DESTINATIONMAN/$FILEMAN
 
 echo -ne " success!\n\n"\
@@ -95,7 +95,7 @@ fi
 echo -ne " success!\n"\
 " Updating file ownership and permissions of $FILESCHEDMAN..."
 
-chown root:root $DESTINATIONMAN/$FILESCHEDMAN
+chown 0:0 $DESTINATIONMAN/$FILESCHEDMAN
 chmod 744 $DESTINATIONMAN/$FILESCHEDMAN
 
 echo -ne " success!\n\n"\
