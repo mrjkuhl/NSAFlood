@@ -128,9 +128,9 @@ MONTH=""
 WEEKDAY=""
 CRONUSER=$USER
 
-if [ $USER != "root" ]; then
+if [ $UID != 0 ]; then
 	echo -ne " You need to be root to edit the crontab.\n"\
-	" Exiting...\n"
+	"Exiting...\n"
 
 	exit 1
 fi
