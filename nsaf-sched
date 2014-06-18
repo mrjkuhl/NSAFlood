@@ -130,23 +130,23 @@ function deleteSchedule {
 	rm -r $TMPDIR
 }
 
-BANDWIDTH=""
+BANDWIDTH=2048
 HOST=""
-FILESIZE=""
+FILESIZE=1
 KEYFILE=""
 
 MINUTE=
 HOUR=
-DAY=""
-MONTH=""
-WEEKDAY=""
+DAY=
+MONTH=
+WEEKDAY=
 CRONUSER=$USER
 
 if [ $UID != 0 ]; then
 	echo -ne " You need to be root to edit the crontab.\n"\
 	"Exiting...\n"
 
-	exit 1
+	exit 3
 fi
 
 if [ ! -f $CRONFILEBACKUP ]; then
@@ -161,8 +161,7 @@ while [ $1 ]; do
       shift 2
       ;;
     -s | --file-size)
-      TMP=$2
-      FILESIZE=$((FILESIZE * TMP))
+      FILESIZE=$2
       shift 2
       ;;
     -b | --bandwidth)
@@ -216,74 +215,64 @@ while [ $1 ]; do
     *)
       echo "Unknown option: $1"
       printUsage
-      exit 3
+      exit 2
       ;;
   esac
 done
 
 if [ -z $HOST ]; then
-	echo -ne " You must specify a destination user and host\n"\
-	"EXAMPLE: nsaf-sched --host=user@remotehost\n"\
-	"Exiting...\n"
-	exit 2
+	echo -ne "You must specify a destination user and host.
+EXAMPLE: nsaf-sched --host=user@remotehost
+Exiting"
+	exit 1
 fi
 
 if [ -z $MINUTE ] && [ -z $HOUR ] && [ -z $DAY ] && [ -z $MONTH ] && [ -z $WEEKDAY ]; then
-	echo -ne " ERROR: You must specify at least one time/date variable.\n\n"\
-	" EXAMPLE: \"nsaf-sched --file-size=1000 --key-file=~/.ssh/id_rsa --host=anon@ --hour=12\"\n"
-	exit 2
+	echo -ne "ERROR: You must specify at least one time/date variablen.
+EXAMPLE: \"nsaf-sched --file-size=1000 --key-file=~/.ssh/id_rsa --host=anon@ --hour=12\"\n"
+	exit 1
 fi
 
-NSAFTASK="$CRONUSER /usr/local/bin/nsaflood"
-if [ -n $BANDWIDTH ]; then
-	NSAFTASK="$NSAFTASK --bandwidth=$BANDWIDTH"
+NSAFTASK="$CRONUSER /usr/local/bin/nsaflood --bandwidth $BANDWIDTH --file-size $FILESIZE"
+
+if [ ! -z "$KEYFILE" ]; then
+	NSAFTASK="$NSAFTASK --key-file $KEYFILE"
+fi
+
+NSAFTASK="$NSAFTASK --host $HOST"
+
+if [ -z $WEEKDAY ]; then
+	NSAFTASK="* $NSAFTASK";
 else
-	NSAFTASK="$NSAFTASK --bandwidth=2048"
-fi
-
-if [ -n $FILESIZE ]; then
-	NSAFTASK="$NSAFTASK --file-size=$FILESIZE"
-else
-	NSAFTASK="$NSAFTASK --file-size=1"
-fi
-
-if [ -n $KEYFILE ]; then
-	NSAFTASK="$NSAFTASK --key-file=$KEYFILE"
-fi
-
-NSAFTASK="$NSAFTASK --host=$HOST"
-if [ -n $WEEKDAY ]; then
 	NSAFTASK="$WEEKDAY $NSAFTASK"
-else
-	NSAFTASK="* $NSAFTASK";
 fi
 
-if [ -n $MONTH ]; then
+if [ -z $MONTH ]; then
+	NSAFTASK="* $NSAFTASK";
+else
 	NSAFTASK="$MONTH $NSAFTASK"
-else
-	NSAFTASK="* $NSAFTASK";
 fi
 
-if [ -n $DAY ]; then
+if [ -z $DAY ]; then
+	NSAFTASK="* $NSAFTASK";
+else
 	NSAFTASK="$DAY $NSAFTASK"
-else
-	NSAFTASK="* $NSAFTASK";
 fi
 
-if [ -n $HOUR ]; then
+if [ -z $HOUR ]; then
+	NSAFTASK="* $NSAFTASK"
+else
 	NSAFTASK="$HOUR $NSAFTASK"
-else
-	NSAFTASK="* $NSAFTASK"
 fi
 
-NSAFTASK=" $NSAFTASK"
-
-if [ -n $MINUTE ]; then
-	NSAFTASK="$MINUTE $NSAFTASK"
-else
+if [ -z $MINUTE ]; then
 	NSAFTASK="* $NSAFTASK"
+else
+	NSAFTASK="$MINUTE $NSAFTASK"
 fi
 
 echo "$NSAFTASK" >> $CRONFILE
 
 rm -r $TMPDIR
+
+exit 0

@@ -82,10 +82,19 @@ while [ $1 ]; do
     *)
       echo "Unknown option: $1"
       printUsage
-      exit 1
+      exit 2
       ;;
   esac
 done
+
+if [ -z $HOST ]; then
+
+	echo "FAILURE: not enough arguments.
+REASON: --host not specified.
+Exiting"
+
+	exit 1
+fi
 
 GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
 
@@ -96,13 +105,13 @@ if [ $? -ne 0 ]; then
 	echo "FAILURE: File generation failed.
 REASON: dd failed to read from /dev/urandom.
 Exiting"
-	exit 1
+	exit 3
 fi
 
 echo -e "File generated!
 Transferring garbage file to $HOST\n"
 
-if [ -r "$KEYFILE" ]; then
+if [ ! -z "$KEYFILE" ]; then
 	scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE "$HOST:/dev/null"
 else
 	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
@@ -112,7 +121,7 @@ if [ $? -ne 0 ]; then
 	echo "FAILURE: File transfer failed.
 REASON: scp failed to transfer the file.
 Exiting"
-	exit 2
+	exit 4
 fi
 
 rm "$GARBAGEFILE"
