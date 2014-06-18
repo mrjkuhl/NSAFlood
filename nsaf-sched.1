@@ -1,4 +1,4 @@
-.TH NSAF-SCHED 1 "06/17/2014" "1.3.0"
+.TH NSAF-SCHED 1 "06/17/2014" "1.3.1"
 .SH NAME
 nsaf-sched \- Schedule NSAFlood
 .SH SYNOPSIS
@@ -12,7 +12,7 @@ It is recommended that you schedule NSAFlood to run sometime between midnight an
 .SH OPTIONS
 .TP
 
-.B \-l ", " \-\-list\fR [\fIoptions\fP]
+.BR \-l ", " \-\-list\fR [\fIoptions\fP]
 	List all nsaflood cronjobs. Arguments can be specified 
 	to limit the number of jobs selected for possible deletion.
 
@@ -25,6 +25,26 @@ It is recommended that you schedule NSAFlood to run sometime between midnight an
 .BR \-u\ \fIUser\fR ", " \-\-user\ \fIUser\fR
 	The user you wish nsaflood to be run as. By default is 
 	equal to current user.
+
+.TP
+.BR \-m\ \fIminute\fR ", " \-\-minute\ \fIminute\fR
+	The minute (0-50) for the command to run at.
+
+.TP
+.BR \-hr\ \fIhour\fR ", " \-\-hour\ \fIhour\fR
+	The hour (0-23) for the command to run at.
+
+.TP
+.BR \-D\ \fIday\fR ", " \-\-day\ \fIday\fR
+	The day (1-31) for the command to run on.
+
+.TP
+.BR \-M\ \fImonth\fR ", " \-\-month\ \fImonth\fR
+	The month (1-12) for the command to run on.
+
+.TP
+.BR \-d\ \fIday\fR ", " \-\-week-day\ \fIday\fR
+	The week day (0-6) for the command to run on.
 
 .TP
 .BR \-b\ \fIKilobits/s\fR ", " \-\-bandwidth\ \fIKilobits/s\fR
@@ -56,5 +76,13 @@ It is recommended that you schedule NSAFlood to run sometime between midnight an
 	Limit jobs selected as candidates for deletion to the 
 	specified file size.
 
+.TP
+.BR \-V ", " \-\-version\fR
+	Get the version and copyright information of nsaf-sched.
+
+.TP
+.BR \-h ", " \-\-help\fR
+	Get usage information for nsaf-sched.
+
 .SH EXIT STATUS
-The program will return 0 if it is successfull. If the user is not root, it will return 1. If the user did not supply the necessary arguments, the return code will be 2. If the user supplies a bogus argument, the return code will be 3.
+The program will return 0 if it is successfull. If the user did not supply the necessary arguments, the return code will be 1. If the user supplies a bogus argument, the return code will be 2. If the user is not root, it will return 3.
