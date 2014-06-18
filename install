@@ -12,93 +12,97 @@ FILESCHEDMANSRC="nsaf-sched.1"
 
 if [ $UID != 0 ]; then
 
-  echo -ne " Only root can install programs.\n"\
-	"Exiting...\n"
+  echo "Only root can install programs.
+Exiting..."
 
 	exit 1
 fi
 
-echo -ne "\n Moving $FILEBIN to $DESTINATIONBIN..."
+echo -n "Moving $FILEBIN to $DESTINATIONBIN...				"
 
 cp $CURRENTDIR/$FILEBIN $DESTINATIONBIN
 
 if [ $? -ne 0 ]; then
 
-	echo -ne " ERROR: Could not copy $FILEBIN to $DESTINATIONBIN\n"\
-	"This may be due to insufficient file permissions, or the partition being full.\n"\
-	"Exiting...\n"
+	echo -e "\E[31mFAILURE!\E37m
+ERROR: Could not copy $FILEBIN to $DESTINATIONBIN
+This may be due to insufficient file permissions, or the partition being full.
+Exiting..."
 
 	exit 2
 fi
 
-echo -ne " success!\n"\
-" Updating file ownership and permissions on $FILEBIN..."
+echo -ne "\E[32m[success!]\E[37m
+Updating file ownership and permissions on $FILEBIN...		"
 
 chown 0:0 $DESTINATIONBIN/$FILEBIN
 chmod 755 $DESTINATIONBIN/$FILEBIN
 
-echo -ne " succes!\n\n"\
-" Moving $FILESCHED to $DESTINATIONBIN..."
+echo -ne "\E[32m[success!]\E[37m
+Moving $FILESCHED to $DESTINATIONBIN...				"
 
 cp $CURRENTDIR/$FILESCHED $DESTINATIONBIN
 
 if [ $? -ne 0 ]; then
 
-	echo -ne "ERROR: Could not copy $FILESCHED to $DESTINATOINBIN\n"\
-	" This may be due to insufficent file permissions, or the partition being full.\n"\
-	" Exiting...\n"
+	echo "\E[31mFAILURE!\E37m
+ERROR: Could not copy $FILESCHED to $DESTINATOINBIN
+This may be due to insufficent file permissions, or the partition being full.
+Exiting..."
 
 	exit 2
 fi
 
-echo -ne " success!\n"\
-" Updating file ownership and permissions on $FILESCHED..."
+echo -ne "\E[32m[success!]\E[37m
+Updating file ownership and permissions on $FILESCHED...	"
 
 chown 0:0 $DESTINATIONBIN/$FILESCHED
 chmod 755 $DESTINATIONBIN/$FILESCHED
 
-echo -ne " success!\n\n"\
-" Compressing $FILEMANSRC and moving to $DESTINATIONMAN..."
+echo -ne "\E[32m[success!]\E[37m
+Compressing $FILEMANSRC and moving to $DESTINATIONMAN...	"
 
 gzip --stdout $CURRENTDIR/$FILEMANSRC > $DESTINATIONMAN/$FILEMAN
 
 if [ $? -ne 0 ]; then
 
-	echo -ne " ERROR: Could not copy $FILEMAN to $DESTINATIONMAN\n"\
-	"This may be due to insuffiencet file permissions, or the partition being full.\n"\
-	"Exiting...\n"
+	echo "\E[31mFAILURE!\E37m
+ERROR: Could not copy $FILEMAN to $DESTINATIONMAN
+This may be due to insuffiencet file permissions, or the partition being full.
+Exiting..."
 
 	exit 2
 fi
 
-echo -ne " success!\n"\
-" Updating file ownership and permissions of $FILEMAN..."
+echo -ne "\E[32m[success!]\E[37m
+Updating file ownership and permissions of $FILEMAN...	"
 
 chown 0:0 $DESTINATIONMAN/$FILEMAN
 chmod 744 $DESTINATIONMAN/$FILEMAN
 
-echo -ne " success!\n\n"\
-" Compressing $FILESCHEDMANSRC and moving to $DESTINATIONMAN..."
+echo -ne "\E[32m[success!]\E[37m
+Compressing $FILESCHEDMANSRC and moving to $DESTINATIONMAN...	"
 
 
 gzip --stdout $CURRENTDIR/$FILESCHEDMANSRC > $DESTINATIONMAN/$FILESCHEDMAN
 
 if [ $? -ne 0 ]; then
 
-	echo one " ERROR: Could not copy $FILESCHEDMAN to $DESTINATIONMAN\n"\
-	"This may be due to insufficient file permissions, or the partition being full."\
-	"Exiting...\n"
+	echo "\E[31mFAILURE!\E37m
+ERROR: Could not copy $FILESCHEDMAN to $DESTINATIONMAN
+This may be due to insufficient file permissions, or the partition being full.
+Exiting..."
 
 	exit 2
 fi
 
-echo -ne " success!\n"\
-" Updating file ownership and permissions of $FILESCHEDMAN..."
+echo -ne "\E[32m[success!]\E[37m
+Updating file ownership and permissions of $FILESCHEDMAN...	"
 
 chown 0:0 $DESTINATIONMAN/$FILESCHEDMAN
 chmod 744 $DESTINATIONMAN/$FILESCHEDMAN
 
-echo -ne " success!\n\n"\
-" Installation of NSAFlood finished successfully.\n\n"
+echo -e "\E[32m[success!]\E[37m
+Installation of NSAFlood finished successfully."
 
 exit 0

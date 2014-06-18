@@ -1,4 +1,14 @@
 
+1.3.2
+-----
+6/18/2014
+nsaf-sched:
+- Fixed bugs created by 1.3.0 and 1.3.1 releases.
+
+install:
+- Fixed bugs created by 1.3.0 and 1.3.1 releases.
+- Added color to the "success!" and "FAILURE!" messages of the install file.
+
 1.3.1
 -----
 6/17/2014
