@@ -1,4 +1,18 @@
 
+1.3.1
+-----
+6/17/2014
+
+nsaflood:
+- Fixed $KEYFILE.
+- Refactored argument handling.
+- Added --help argument for usage.
+
+nsaf-sched:
+- Fixed all scheduler variables.
+- Refactored argument handling.
+- Added --help argument for usage.
+
 1.3.0
 -----
 6/17/2014
