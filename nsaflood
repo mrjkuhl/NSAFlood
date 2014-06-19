@@ -18,6 +18,10 @@
 #
 
 VERSION="1.3.2"
+CONFIGFILE="/etc/nsaflood/nsaflood.conf"
+PEERTAB="/etc/nsaflood/peertab"
+
+. $CONFIGFILE
 
 printVersion() {
 	echo "NSAFlood $VERSION
@@ -42,6 +46,27 @@ Options:
   -V  --version     Show version and exit
   -h  --help        Show this help and exit
 EOF
+}
+
+function selectPeer {
+	PEERLIST=$(cat $PEERTAB | grep -n "")
+	LINECOUNT=$(echo "$PEERLIST" | wc -l)
+	RAND=$(($RANDOM % LINECOUNT + 1))
+	SELECTEDPEER=$(echo "$PEERLIST" | grep -e "$RAND")
+	echo $SELECTEDPEER | echo ${SELECTEDPEER#*:} | sed "s/\s.*//"
+}
+
+function getKey {
+	SELECTEDPEER=$1
+	SELECTEDPEER=$(cat $PEERTAB | grep -e "$SELECTEDPEER")
+	echo $SELECTEDPEER | sed "s/.*\s//"
+}
+
+function incrementTTL {
+	local TTL=$1
+	TTL=$(cat $TTLFILE)
+	TTL=$((TTL - 1))
+	echo $TTL
 }
 
 BANDWIDTH=2048
@@ -71,6 +96,14 @@ while [ $1 ]; do
       KEYFILE=$2
       shift 2
       ;;
+    -g | --garbage-file)
+      GARBAGEFILE=$2
+      shift 2
+      ;;
+    -t | --ttl)
+      TTLTMP=$2
+      shift 2
+      ;;
     -V | --version)
       printVersion
       exit 0
@@ -87,19 +120,35 @@ while [ $1 ]; do
   esac
 done
 
-if [ -z $HOST ]; then
+if [ ! -z $TTLTMP ]; then
+	HOST=$(selectPeer)
+	TTL=$((TTLTMP - 1))
+	KEYFILE=$(getKey $HOST)
+fi
+echo "Here here $TTL"
 
+if [ -z $HOST ]; then
 	echo "FAILURE: not enough arguments.
 REASON: --host not specified.
 Exiting"
-
 	exit 1
 fi
 
-GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
+echo "$KEYFILE"
+if [ -z $KEYFILE ]; then
+	echo "FAILURE: not enough arguments.
+REASON: --key-file not specifieed.
+Exiting"
+	exit 1
+fi
 
-echo "Generating file..."
-dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
+if [ -z $GARBAGEFILE ]; then
+	GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
+	echo "Generating file..."
+	dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
+else
+	echo "File found!"
+fi
 
 if [ $? -ne 0 ]; then
 	echo "FAILURE: File generation failed.
@@ -108,14 +157,11 @@ Exiting"
 	exit 3
 fi
 
-echo -e "File generated!
-Transferring garbage file to $HOST\n"
+echo "Transferring garbage file to $HOST
+"
 
-if [ ! -z "$KEYFILE" ]; then
-	scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE "$HOST:/dev/null"
-else
-	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
-fi
+scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
+ssh -i $KEYFILE $HOST nohup nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
 
 if [ $? -ne 0 ]; then
 	echo "FAILURE: File transfer failed.
@@ -124,6 +170,6 @@ Exiting"
 	exit 4
 fi
 
-rm "$GARBAGEFILE"
+rm $GARBAGEFILE
 
 exit 0
