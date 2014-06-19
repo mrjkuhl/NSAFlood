@@ -9,6 +9,9 @@ FILEMAN="nsaflood.1.gz"
 FILEMANSRC="nsaflood.1"
 FILESCHEDMAN="nsaf-sched.1.gz"
 FILESCHEDMANSRC="nsaf-sched.1"
+CONFIGDIR="/etc/nsaflood"
+CONFIGFILE="nsaflood.conf"
+CONFIGPEERTAB="peertab"
 
 if [ $UID != 0 ]; then
 
@@ -24,7 +27,7 @@ cp $CURRENTDIR/$FILEBIN $DESTINATIONBIN
 
 if [ $? -ne 0 ]; then
 
-	echo -e "\E[31mFAILURE!\E37m
+	echo -e "\E[31m[FAILURE!]\E[37m
 ERROR: Could not copy $FILEBIN to $DESTINATIONBIN
 This may be due to insufficient file permissions, or the partition being full.
 Exiting..."
@@ -45,7 +48,7 @@ cp $CURRENTDIR/$FILESCHED $DESTINATIONBIN
 
 if [ $? -ne 0 ]; then
 
-	echo "\E[31mFAILURE!\E37m
+	echo -e "\E[31m[FAILURE!]\E[37m
 ERROR: Could not copy $FILESCHED to $DESTINATOINBIN
 This may be due to insufficent file permissions, or the partition being full.
 Exiting..."
@@ -66,7 +69,7 @@ gzip --stdout $CURRENTDIR/$FILEMANSRC > $DESTINATIONMAN/$FILEMAN
 
 if [ $? -ne 0 ]; then
 
-	echo "\E[31mFAILURE!\E37m
+	echo -e "\E[31m[FAILURE!]\E[37m
 ERROR: Could not copy $FILEMAN to $DESTINATIONMAN
 This may be due to insuffiencet file permissions, or the partition being full.
 Exiting..."
@@ -88,7 +91,7 @@ gzip --stdout $CURRENTDIR/$FILESCHEDMANSRC > $DESTINATIONMAN/$FILESCHEDMAN
 
 if [ $? -ne 0 ]; then
 
-	echo "\E[31mFAILURE!\E37m
+	echo -e "\E[31m[FAILURE!]\E[37m
 ERROR: Could not copy $FILESCHEDMAN to $DESTINATIONMAN
 This may be due to insufficient file permissions, or the partition being full.
 Exiting..."
@@ -101,6 +104,42 @@ Updating file ownership and permissions of $FILESCHEDMAN...	"
 
 chown 0:0 $DESTINATIONMAN/$FILESCHEDMAN
 chmod 744 $DESTINATIONMAN/$FILESCHEDMAN
+
+echo -ne "\E[32m[success!]\E[37m
+Creating $CONFIGDIR...					"
+
+mkdir $CONFIGDIR > /dev/null 2>&1
+
+if [ $? -ne 0 ]; then
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create directory $CONFIGDIR
+This may be due to insufficient file permissions, or the directory exists.
+Exiting..."
+	exit 2
+fi
+
+echo -ne "\E[32m[success!]\E[37m
+Creating configuration files...					"
+
+cp $CONFIGFILE $CONFIGDIR/$CONFIGFILE
+
+if [ $? -ne 0 ]; then
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create file $CONFIGFILE
+This may be due to insufficient file permissions.
+Exiting..."
+	exit 2
+fi
+
+touch $CONFIGDIR/$CONFIGPEERTAB
+
+if [ $? -ne 0 ]; then
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create file $CONFIGFILE
+This may be due to insufficient file permissions.
+Exiting..."
+	exit 2
+fi
 
 echo -e "\E[32m[success!]\E[37m
 Installation of NSAFlood finished successfully."
