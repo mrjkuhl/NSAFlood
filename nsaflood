@@ -18,6 +18,10 @@
 #
 
 VERSION="1.3.2"
+CONFIGFILE="/etc/nsaflood/nsaflood.conf"
+PEERTAB="/etc/nsaflood/peertab"
+
+. $CONFIGFILE
 
 printVersion() {
 	echo "NSAFlood $VERSION
@@ -42,6 +46,14 @@ Options:
   -V  --version     Show version and exit
   -h  --help        Show this help and exit
 EOF
+}
+
+function selectPeer {
+	PEERLIST=$(cat $PEERTAB | grep -n "")
+	LINECOUNT=$(echo "$PEERLIST" | wc -l)
+	RAND=$(($RANDOM % LINECOUNT + 1))
+	SELECTEDPEER=$(echo "$PEERLIST" | grep -e "$RAND")
+	echo $SELECTEDPEER | echo ${SELECTEDPEER#*:} | sed "s/\s.*//"
 }
 
 BANDWIDTH=2048
@@ -71,6 +83,14 @@ while [ $1 ]; do
       KEYFILE=$2
       shift 2
       ;;
+    -g | --garbage-file)
+      GARBAGEFILE=$2
+      shift 2
+      ;;
+    -t | --ttl)
+      TTLTMP=$2
+      shift 2
+      ;;
     -V | --version)
       printVersion
       exit 0
@@ -87,35 +107,56 @@ while [ $1 ]; do
   esac
 done
 
-if [ -z $HOST ]; then
+if [ $TTLTMP == 0 ]; then
+	echo "The TTL of this file has expired, it will no longer be propogated throughout the network."
+	exit 0
+fi
 
+if [ ! -z $TTLTMP ]; then
+	HOST=$(selectPeer)
+	TTL=$((TTLTMP - 1))
+fi
+
+if [ -z $HOST ]; then
 	echo "FAILURE: not enough arguments.
 REASON: --host not specified.
 Exiting"
-
 	exit 1
 fi
 
-GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
+if [ -z $KEYFILE ] && ls $DEFAULTKEYFILE
+then
+	echo "KEYFILE not specified, using DEFEAULTKEYFILE"
+	KEYFILE=$DEFAULTKEYFILE
+elif [ -z $KEYFILE ]
+then
+	echo "FAILURE: not enough arguments.
+REASON: --key-file not specifieed, and no DEFAULTKEYFILE found.
+Exiting"
+	exit 1
+fi
 
-echo "Generating file..."
-dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
-
-if [ $? -ne 0 ]; then
-	echo "FAILURE: File generation failed.
+if [ -z $GARBAGEFILE ]; then
+	GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
+	echo "Generating file..."
+	if dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
+	then
+		echo "File generated!"
+	else
+		echo "FAILURE: File generation failed.
 REASON: dd failed to read from /dev/urandom.
 Exiting"
-	exit 3
-fi
-
-echo -e "File generated!
-Transferring garbage file to $HOST\n"
-
-if [ ! -z "$KEYFILE" ]; then
-	scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE "$HOST:/dev/null"
+		exit 3
+	fi
 else
-	scp -l $BANDWIDTH $GARBAGEFILE "$HOST:/dev/null"
+	echo "File found!"
 fi
+
+
+echo "Transferring garbage file to $HOST..."
+
+scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
+ssh -i $KEYFILE $HOST nohup nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
 
 if [ $? -ne 0 ]; then
 	echo "FAILURE: File transfer failed.
@@ -124,6 +165,6 @@ Exiting"
 	exit 4
 fi
 
-rm "$GARBAGEFILE"
+rm $GARBAGEFILE
 
 exit 0

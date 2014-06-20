@@ -81,6 +81,7 @@ The file might not exist
 Exiting..."
 	exit 2
 fi
+
 if chmod 755 $DESTINATIONBIN/$FILESCHED
 then
 	echo -e "\E[32m[success!]\E[37m"
@@ -128,7 +129,6 @@ Exiting..."
 fi
 
 echo -n "Compressing $FILESCHEDMANSRC and moving to $DESTINATIONMAN...	"
-
 
 if gzip --stdout $CURRENTDIR/$FILESCHEDMANSRC > $DESTINATIONMAN/$FILESCHEDMAN
 then
