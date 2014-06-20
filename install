@@ -13,6 +13,7 @@ CONFIGDIR="/etc/nsaflood"
 CONFIGFILE="nsaflood.conf"
 CONFIGPEERTAB="peertab"
 LOGDIR="/var/log/nsaflood"
+NSAFLOODUSER="nsaflood"
 
 if [ $UID != 0 ]; then
 
@@ -194,6 +195,66 @@ else
 	echo -e "\E[31m[FAILURE!]\E[37m
 ERROR: Could not create file $CONFIGFILE
 This may be due to insufficient file permissions.
+Exiting..."
+	exit 2
+fi
+
+echo -n "Updating file ownership and permissions of $CONFIGFILE...	"
+
+if ! chown 0:0 $CONFIGDIR/$CONFIGFILE
+then
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not change ownership of $FILEMANSCHED
+The file might not exist
+Exiting..."
+	exit 2
+fi
+
+if chmod 744 $CONFIGDIR/$CONFIGFILE
+then
+	echo -e "\E[32m[success!]\E[37m"
+else
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not change permissions of $FILEMANSCHED
+The file might not exist
+Exiting..."
+	exit 2
+fi
+
+echo -n "Creating $LOGDIR...					"
+
+if mkdir $LOGDIR > /dev/null 2>&1
+then
+	echo -e "\E[32m[success!]\E[37m"
+else
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create directory $CONFIGDIR
+This may be due to insufficient file permissions, or the directory exists.
+Exiting..."
+	exit 2
+fi
+
+echo -n "Creating nsaflood user $NSAFLOODUSER...				"
+
+if useradd -d /home/$NSAFLOODUSER $NSAFLOODUSER
+then
+	echo -e "\E[32m[success!]\E[37m"
+else
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create user $NSAFLOODUSER
+Exiting..."
+	exit 2
+fi
+
+echo -n "Changing ownership of $LOGDIR...			"
+
+if chown $NSAFLOODUSER $LOGDIR
+then
+	echo -e "\E[32m[success!]\E[37m"
+else
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could change ownership of directory $LOGDIR
+This may be due to insufficient file permissions, or the directory does not exist.
 Exiting..."
 	exit 2
 fi
