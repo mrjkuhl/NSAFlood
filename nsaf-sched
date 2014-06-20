@@ -239,13 +239,13 @@ fi
 if [ -z $FILESIZE ]; then
 	FILESIZE=1
 fi
-NSAFTASK="$CRONUSER nohup nsaflood --bandwidth $BANDWIDTH --file-size $FILESIZE"
+NSAFTASK="$CRONUSER nsaflood --bandwidth $BANDWIDTH --file-size $FILESIZE"
 
 if [ ! -z "$KEYFILE" ]; then
 	NSAFTASK="$NSAFTASK --key-file $KEYFILE"
 fi
 
-NSAFTASK="$NSAFTASK --host $HOST >> /var/log/nsaflood/network.log-`date '+%Y%m%d'` 2>&1"
+NSAFTASK="$NSAFTASK --host $HOST"
 
 if [ -z $WEEKDAY ]; then
 	NSAFTASK="* $NSAFTASK";

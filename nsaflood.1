@@ -39,4 +39,4 @@ It is recommended that you schedule nsaflood to run periodically through nsaf-sc
 
 .SH EXIT STATUS
 
-If NSAFlood has successfully generated and trasnfered the file, the return code will be 0. If not enough argument were specified, the return code will be 1. If the user supplied a bogus argument, the exit code will be 2. If there was an error in the generation of the garbage file, the return code will be 3. If there was an error in the transfer of the garbage file, the exit code will be 4.
+If NSAFlood has successfully generated and trasnfered the file, the return code will be 0. If the log file cannot be written to, the exit code will be 1. If not enough argument were specified, the exit code will be 2. If the user supplied a bogus argument, the exit code will be 3. If there was an error in the generation of the garbage file, the exit code will be 4. If there was an error in the transfer of the garbage file, the exit code will be 5.

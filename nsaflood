@@ -17,9 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-VERSION="1.3.2"
 CONFIGFILE="/etc/nsaflood/nsaflood.conf"
-PEERTAB="/etc/nsaflood/peertab"
 
 . $CONFIGFILE
 
@@ -48,12 +46,33 @@ Options:
 EOF
 }
 
-function selectPeer {
+function printLog() {
+	LOGMESSAGE="$@"
+	if echo "`date '+%T'` $LOGMESSAGE" >> $LOGFILE
+	then
+		return 0
+	else
+		echo "`date '+%Y%m%d'` Cannot write to log file, please check file permissions. NSAFlood will now exit."
+		exit 1
+	fi
+}
+
+function selectPeer() {
 	PEERLIST=$(cat $PEERTAB | grep -n "")
 	LINECOUNT=$(echo "$PEERLIST" | wc -l)
 	RAND=$(($RANDOM % LINECOUNT + 1))
 	SELECTEDPEER=$(echo "$PEERLIST" | grep -e "$RAND")
 	echo $SELECTEDPEER | echo ${SELECTEDPEER#*:} | sed "s/\s.*//"
+}
+
+function deleteGarbagefile() {
+	GFILE=$1
+	if rm $GFILE > /dev/null 2>&1
+	then
+		printLog "$GFILE successfully deleted."
+	else
+		printLog "ERROR: could not delete $GFILE, please check file permissions."
+	fi
 }
 
 BANDWIDTH=2048
@@ -88,7 +107,7 @@ while [ $1 ]; do
       shift 2
       ;;
     -t | --ttl)
-      TTLTMP=$2
+      TTL=$2
       shift 2
       ;;
     -V | --version)
@@ -102,69 +121,68 @@ while [ $1 ]; do
     *)
       echo "Unknown option: $1"
       printUsage
-      exit 2
+      exit 3
       ;;
   esac
 done
 
-if [ $TTLTMP == 0 ]; then
-	echo "The TTL of this file has expired, it will no longer be propogated throughout the network."
+if [ ! -z $TTL ] && [ $TTL == 0 ]
+then
+	printLog "TTL of $GARBAGEFILE is 0, file will not be propogated further."
+	deleteGarbagefile $GARBAGEFILE
 	exit 0
-fi
-
-if [ ! -z $TTLTMP ]; then
-	HOST=$(selectPeer)
-	TTL=$((TTLTMP - 1))
-fi
-
-if [ -z $HOST ]; then
-	echo "FAILURE: not enough arguments.
-REASON: --host not specified.
-Exiting"
-	exit 1
+elif [ ! -z $TTL ]
+then
+	TTL=$((TTL - 1))
+	printLog "TTL decremented to $TTL"
+else
+	TTL=$DEFAULTTTL
 fi
 
 if [ -z $KEYFILE ] && ls $DEFAULTKEYFILE
 then
-	echo "KEYFILE not specified, using DEFEAULTKEYFILE"
+	printLog "KEYFILE not specified, using DEFEAULTKEYFILE"
 	KEYFILE=$DEFAULTKEYFILE
 elif [ -z $KEYFILE ]
 then
-	echo "FAILURE: not enough arguments.
-REASON: --key-file not specifieed, and no DEFAULTKEYFILE found.
-Exiting"
-	exit 1
+	printLog "Error: No KEYFILE specified, and DEFAULTKEYFILE not found or specified"
+	exit 2
 fi
 
 if [ -z $GARBAGEFILE ]; then
-	GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
-	echo "Generating file..."
+	if ! GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
+	then
+		printLog "Error: Could not create garbagefile."
+		exit 4
+	fi
 	if dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
 	then
-		echo "File generated!"
+		printLog "Random data for garbagefile $GARBAGEFILE generated successfully."
 	else
-		echo "FAILURE: File generation failed.
-REASON: dd failed to read from /dev/urandom.
-Exiting"
-		exit 3
+		printLog "Could not generate random data for garbagefile $GARBAGEFILE."
+		exit 4
 	fi
 else
-	echo "File found!"
+	printLog "Garbagefile $GARBAGEFILE found."
 fi
 
-
-echo "Transferring garbage file to $HOST..."
-
-scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
-ssh -i $KEYFILE $HOST nohup nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
-
-if [ $? -ne 0 ]; then
-	echo "FAILURE: File transfer failed.
-REASON: scp failed to transfer the file.
-Exiting"
-	exit 4
+if [ -z $HOST ]
+then
+	HOST=$(selectPeer)
+	printLog "Peer $HOST selected from peertab."
+else
+	printLog "User supplied $HOST as target peer."
 fi
 
-rm $GARBAGEFILE
+if scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
+then
+	ssh -i $KEYFILE $HOST nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
+	printLog "Garbagefile $GARBAGEFILE successfully transfered to peer $HOST."
+else
+	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer."
+	exit 5
+fi
+
+deleteGarbagefile $GARBAGEFILE
 
 exit 0
