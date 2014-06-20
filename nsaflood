@@ -128,7 +128,8 @@ if [ -z $KEYFILE ] && ls $DEFAULTKEYFILE
 then
 	echo "KEYFILE not specified, using DEFEAULTKEYFILE"
 	KEYFILE=$DEFAULTKEYFILE
-else
+elif [ -z $KEYFILE ]
+then
 	echo "FAILURE: not enough arguments.
 REASON: --key-file not specifieed, and no DEFAULTKEYFILE found.
 Exiting"
