@@ -56,19 +56,6 @@ function selectPeer {
 	echo $SELECTEDPEER | echo ${SELECTEDPEER#*:} | sed "s/\s.*//"
 }
 
-function getKey {
-	SELECTEDPEER=$1
-	SELECTEDPEER=$(cat $PEERTAB | grep -e "$SELECTEDPEER")
-	echo $SELECTEDPEER | sed "s/.*\s//"
-}
-
-function incrementTTL {
-	local TTL=$1
-	TTL=$(cat $TTLFILE)
-	TTL=$((TTL - 1))
-	echo $TTL
-}
-
 BANDWIDTH=2048
 HOST=
 FILESIZE=1024
@@ -120,12 +107,15 @@ while [ $1 ]; do
   esac
 done
 
+if [ $TTLTMP == 0 ]; then
+	echo "The TTL of this file has expired, it will no longer be propogated throughout the network."
+	exit 0
+fi
+
 if [ ! -z $TTLTMP ]; then
 	HOST=$(selectPeer)
 	TTL=$((TTLTMP - 1))
-	KEYFILE=$(getKey $HOST)
 fi
-echo "Here here $TTL"
 
 if [ -z $HOST ]; then
 	echo "FAILURE: not enough arguments.
@@ -134,10 +124,13 @@ Exiting"
 	exit 1
 fi
 
-echo "$KEYFILE"
-if [ -z $KEYFILE ]; then
+if [ -z $KEYFILE ] && ls $DEFAULTKEYFILE
+then
+	echo "KEYFILE not specified, using DEFEAULTKEYFILE"
+	KEYFILE=$DEFAULTKEYFILE
+else
 	echo "FAILURE: not enough arguments.
-REASON: --key-file not specifieed.
+REASON: --key-file not specifieed, and no DEFAULTKEYFILE found.
 Exiting"
 	exit 1
 fi
@@ -145,20 +138,21 @@ fi
 if [ -z $GARBAGEFILE ]; then
 	GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
 	echo "Generating file..."
-	dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
+	if dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
+	then
+		echo "File generated!"
+	else
+		echo "FAILURE: File generation failed.
+REASON: dd failed to read from /dev/urandom.
+Exiting"
+		exit 3
+	fi
 else
 	echo "File found!"
 fi
 
-if [ $? -ne 0 ]; then
-	echo "FAILURE: File generation failed.
-REASON: dd failed to read from /dev/urandom.
-Exiting"
-	exit 3
-fi
 
-echo "Transferring garbage file to $HOST
-"
+echo "Transferring garbage file to $HOST..."
 
 scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
 ssh -i $KEYFILE $HOST nohup nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
