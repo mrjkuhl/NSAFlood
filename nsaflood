@@ -190,7 +190,6 @@ do
 	else
 	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer $HOST, selecting new peer from peertab."
 	HOST=
-	exit 5
 	fi
 done
 
