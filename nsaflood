@@ -186,6 +186,7 @@ do
 	then
 	ssh -i $KEYFILE $HOST nohup nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
 	printLog "Garbagefile $GARBAGEFILE successfully transfered to peer $HOST."
+	counter=0
 	break
 
 	else
@@ -194,7 +195,7 @@ do
 	fi
 done
 
-if [ $counter = 5 ]
+if [ $counter == 5 ]
 then
 	printLog "NSAFlood has selected a random peer from the peertab $counter times, and could not connect to any selected hosts."
 fi
