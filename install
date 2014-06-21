@@ -234,8 +234,27 @@ Exiting..."
 	exit 2
 fi
 
-echo -n "Creating nsaflood user $NSAFLOODUSER...				"
+echo -n "Creating home directory for $NSAFLOODUSER...				"
 
+if ! mkdir -p /home/$NSAFLOODUSER/.ssh
+then
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create user /home/$NSAFLOODUSER or /home/$NSAFLOODUSER/.ssh
+Exiting..."
+	exit 2
+fi
+
+if touch /home/$NSAFLOODUSER/.ssh/authorized_keys
+then
+	echo -e "\E[32m[success!]\E[37m"
+else
+	echo -e "\E[31m[FAILURE!]\E[37m
+ERROR: Could not create user /home/$NSAFLOODUSER/.ssh/authorized_keys
+Exiting..."
+	exit 2
+fi
+
+echo -n "Creating nsaflood user $NSAFLOODUSER...				"
 if useradd -d /home/$NSAFLOODUSER $NSAFLOODUSER
 then
 	echo -e "\E[32m[success!]\E[37m"

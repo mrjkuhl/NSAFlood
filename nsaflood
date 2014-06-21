@@ -150,11 +150,14 @@ then
 fi
 
 if [ -z $GARBAGEFILE ]; then
-	if ! GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
+	if GARBAGEFILE=$(mktemp --tmpdir nsaflood-garbagefile.XXXX)
 	then
+		printLog "Garbagefile created at $GARBAGEFILE"
+	else
 		printLog "Error: Could not create garbagefile."
 		exit 4
 	fi
+
 	if dd if=/dev/urandom of=$GARBAGEFILE bs=1k count=$FILESIZE 2> /dev/null
 	then
 		printLog "Random data for garbagefile $GARBAGEFILE generated successfully."
@@ -166,22 +169,28 @@ else
 	printLog "Garbagefile $GARBAGEFILE found."
 fi
 
-if [ -z $HOST ]
-then
+while true
+do
+	if [ -z $HOST ]
+	then
 	HOST=$(selectPeer)
 	printLog "Peer $HOST selected from peertab."
-else
-	printLog "User supplied $HOST as target peer."
-fi
 
-if scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
-then
+	else
+	printLog "User supplied $HOST as target peer."
+	fi
+
+	if scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
+	then
 	ssh -i $KEYFILE $HOST nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
 	printLog "Garbagefile $GARBAGEFILE successfully transfered to peer $HOST."
-else
-	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer."
+
+	else
+	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer $HOST, selecting new peer from peertab."
+	HOST=
 	exit 5
-fi
+	fi
+done
 
 deleteGarbagefile $GARBAGEFILE
 
