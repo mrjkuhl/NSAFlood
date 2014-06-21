@@ -52,7 +52,7 @@ function printLog() {
 	then
 		return 0
 	else
-		echo "`date '+%Y%m%d'` Cannot write to log file, please check file permissions. NSAFlood will now exit."
+		echo "`date '+%T'` Cannot write to log file, please check file permissions. NSAFlood will now exit."
 		exit 1
 	fi
 }
@@ -175,6 +175,7 @@ do
 	count=$((count + 1))
 	if [ -z $HOST ]
 	then
+	printLog "Selecting peer randomly from peertab."
 	HOST=$(selectPeer)
 	printLog "Peer $HOST selected from peertab."
 	else
@@ -183,15 +184,20 @@ do
 
 	if scp -l $BANDWIDTH -i $KEYFILE $GARBAGEFILE $HOST:$GARBAGEFILE
 	then
-	ssh -i $KEYFILE $HOST nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
+	ssh -i $KEYFILE $HOST nohup nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
 	printLog "Garbagefile $GARBAGEFILE successfully transfered to peer $HOST."
 	break
 
 	else
-	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer $HOST, selecting new peer from peertab."
+	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer $HOST."
 	HOST=
 	fi
 done
+
+if [ $counter = 5 ]
+then
+	printLog "NSAFlood has selected a random peer from the peertab $counter times, and could not connect to any selected hosts."
+fi
 
 deleteGarbagefile $GARBAGEFILE
 

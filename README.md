@@ -15,6 +15,15 @@ Installation
 
 To install NSAFlood, you must execute the install script as root.
 
+Installation messages:
+
+- [success!]: Indicates that the operation was successful (copying file to its 
+destination, creating directory, etc)
+- [FOUND!]: Indicates that the file, directory, or user was found, and so it 
+will not be overwritten (this does not apply to bin and man files).
+- [FAILURE!]: Indicates that there was a failure to perform  the operation. This
+ will usually include a message indicating what the problem may have been
+
 Usage
 -----
 

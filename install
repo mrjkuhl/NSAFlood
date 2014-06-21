@@ -27,9 +27,9 @@ echo -n "Moving $FILEBIN to $DESTINATIONBIN...				"
 
 if cp $CURRENTDIR/$FILEBIN $DESTINATIONBIN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not copy $FILEBIN to $DESTINATIONBIN
 This may be due to insufficient file permissions, or the partition being full.
 Exiting..."
@@ -41,7 +41,7 @@ echo -n "Updating file ownership and permissions on $FILEBIN...		"
 
 if ! chown 0:0 $DESTINATIONBIN/$FILEBIN
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change ownership of $FILEMAN
 The file might not exist
 Exiting..."
@@ -50,9 +50,9 @@ fi
 
 if chmod 755 $DESTINATIONBIN/$FILEBIN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change permissions of $FILEMAN
 The file might not exist
 Exiting..."
@@ -63,9 +63,9 @@ echo -n "Moving $FILESCHED to $DESTINATIONBIN...				"
 
 if cp $CURRENTDIR/$FILESCHED $DESTINATIONBIN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not copy $FILESCHED to $DESTINATOINBIN
 This may be due to insufficent file permissions, or the partition being full.
 Exiting..."
@@ -76,7 +76,7 @@ echo -n "Updating file ownership and permissions on $FILESCHED...	"
 
 if ! chown 0:0 $DESTINATIONBIN/$FILESCHED
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change ownership of $FILEMAN
 The file might not exist
 Exiting..."
@@ -85,9 +85,9 @@ fi
 
 if chmod 755 $DESTINATIONBIN/$FILESCHED
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change permissions of $FILEMAN
 The file might not exist
 Exiting..."
@@ -98,9 +98,9 @@ echo -n "Compressing $FILEMANSRC and moving to $DESTINATIONMAN...	"
 
 if gzip --stdout $CURRENTDIR/$FILEMANSRC > $DESTINATIONMAN/$FILEMAN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not copy $FILEMAN to $DESTINATIONMAN
 This may be due to insuffiencet file permissions, or the partition being full.
 Exiting..."
@@ -111,7 +111,7 @@ echo -n "Updating file ownership and permissions of $FILEMAN...	"
 
 if ! chown 0:0 $DESTINATIONMAN/$FILEMAN
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change ownership of $FILEMAN
 The file might not exist
 Exiting..."
@@ -120,9 +120,9 @@ fi
 
 if chmod 744 $DESTINATIONMAN/$FILEMAN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change permissions of $FILEMAN
 The file might not exist
 Exiting..."
@@ -133,9 +133,9 @@ echo -n "Compressing $FILESCHEDMANSRC and moving to $DESTINATIONMAN...	"
 
 if gzip --stdout $CURRENTDIR/$FILESCHEDMANSRC > $DESTINATIONMAN/$FILESCHEDMAN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not copy $FILESCHEDMAN to $DESTINATIONMAN
 This may be due to insufficient file permissions, or the partition being full.
 Exiting..."
@@ -146,7 +146,7 @@ echo -n "Updating file ownership and permissions of $FILESCHEDMAN...	"
 
 if ! chown 0:0 $DESTINATIONMAN/$FILESCHEDMAN
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change ownership of $FILEMANSCHED
 The file might not exist
 Exiting..."
@@ -155,9 +155,9 @@ fi
 
 if chmod 744 $DESTINATIONMAN/$FILESCHEDMAN
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[32m[success!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change permissions of $FILEMANSCHED
 The file might not exist
 Exiting..."
@@ -166,129 +166,195 @@ fi
 
 echo -n "Creating $CONFIGDIR...					"
 
-if mkdir $CONFIGDIR > /dev/null 2>&1
+if ls $CONFIGDIR > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if mkdir $CONFIGDIR > /dev/null 2>&1
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not create directory $CONFIGDIR
 This may be due to insufficient file permissions, or the directory exists.
 Exiting..."
 	exit 2
+	fi
 fi
 
 echo -n "Creating configuration files...					"
 
-if ! cp $CONFIGFILE $CONFIGDIR/$CONFIGFILE
+if ! ls $CONFIGDIR/$CONFIGFILE > /dev/null 2>&1
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if ! cp $CONFIGFILE $CONFIGDIR/$CONFIGFILE
+	then
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not create file $CONFIGFILE
 This may be due to insufficient file permissions.
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
-if touch $CONFIGDIR/$CONFIGPEERTAB
+if ls $CONFIGDIR/$CONFIGPEERTAB > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if touch $CONFIGDIR/$CONFIGPEERTAB
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not create file $CONFIGFILE
 This may be due to insufficient file permissions.
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
 echo -n "Updating file ownership and permissions of $CONFIGFILE...	"
 
-if ! chown 0:0 $CONFIGDIR/$CONFIGFILE
+if ! ls $CONFIGDIR/$CONFIGFILE > /dev/null 2>&1
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if ! chown 0:0 $CONFIGDIR/$CONFIGFILE
+	then
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change ownership of $FILEMANSCHED
 The file might not exist
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
-if chmod 744 $CONFIGDIR/$CONFIGFILE
+if ls $CONFIGDIR/$CONFIGFILE > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if chmod 744 $CONFIGDIR/$CONFIGFILE
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not change permissions of $FILEMANSCHED
 The file might not exist
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
 echo -n "Creating $LOGDIR...					"
 
-if mkdir $LOGDIR > /dev/null 2>&1
+if ls $LOGDIR > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if mkdir $LOGDIR > /dev/null 2>&1
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+	echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not create directory $CONFIGDIR
 This may be due to insufficient file permissions, or the directory exists.
 Exiting..."
 	exit 2
+	fi
 fi
 
 echo -n "Creating home directory for $NSAFLOODUSER...				"
 
-if ! mkdir -p /home/$NSAFLOODUSER/.ssh
+if ls /home/$NSAFLOODUSER > /dev/null 2>&1
 then
-	echo -e "\E[31m[FAILURE!]\E[37m
-ERROR: Could not create user /home/$NSAFLOODUSER or /home/$NSAFLOODUSER/.ssh
+	echo -e "\E[33m[FOUND!]\E[0m"
+else
+	if mkdir /home/$NSAFLOODUSER
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
+ERROR: Could not create user home /home/$NSAFLOODUSER
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
-if touch /home/$NSAFLOODUSER/.ssh/authorized_keys
+echo -n "Creating $NSAFLOODUSER ssh configuration files			"
+
+if ! ls /home/$NSAFLOODUSER/.ssh > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	if ! mkdir /home/$NSAFLOODUSER/.ssh
+	then
+		echo -e "\E[31m[FAILURE!]\E[0m
+ERROR: Could not create ssh config dir /home/$NSAFLOODUSER/.ssh
+Exiting..."
+		exit 2
+	fi
+fi
+
+if ls /home/$NSAFLOODUSER/.ssh/authorized_keys > /dev/null 2>&1
+then
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if touch /home/$NSAFLOODUSER/.ssh/authorized_keys
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not create user /home/$NSAFLOODUSER/.ssh/authorized_keys
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
 echo -n "Creating nsaflood user $NSAFLOODUSER...				"
-if useradd -d /home/$NSAFLOODUSER $NSAFLOODUSER
+if groups $NSAFLOODUSER > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if useradd -d /home/$NSAFLOODUSER $NSAFLOODUSER > /dev/null 2>&1
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could not create user $NSAFLOODUSER
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
-echo -n "Updating ownership of /home/$NSAFLOODUSER...		"
+echo -n "Updating ownership of /home/$NSAFLOODUSER...				"
 
-if chown -R $NSAFLOODUSER /home/$NSAFLOODUSER
+if ls /home/$NSAFLOODUSER
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if chown -R $NSAFLOODUSER /home/$NSAFLOODUSER
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could change ownership of directory /home/$NSAFLOODUSER
 This may be due to insufficient file permissions, or the directory does not exist.
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
-echo -n "Changing ownership of $LOGDIR...			"
+echo -n "Updating ownership of $LOGDIR...			"
 
-if chown $NSAFLOODUSER $LOGDIR
+if ls $LOGDIR > /dev/null 2>&1
 then
-	echo -e "\E[32m[success!]\E[37m"
+	echo -e "\E[33m[FOUND!]\E[0m"
 else
-	echo -e "\E[31m[FAILURE!]\E[37m
+	if chown $NSAFLOODUSER $LOGDIR
+	then
+		echo -e "\E[32m[success!]\E[0m"
+	else
+		echo -e "\E[31m[FAILURE!]\E[0m
 ERROR: Could change ownership of directory $LOGDIR
 This may be due to insufficient file permissions, or the directory does not exist.
 Exiting..."
-	exit 2
+		exit 2
+	fi
 fi
 
 echo "Installation of NSAFlood finished successfully."
