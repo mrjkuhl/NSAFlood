@@ -169,13 +169,14 @@ else
 	printLog "Garbagefile $GARBAGEFILE found."
 fi
 
-while true
+count=0
+while [ $count -lt 5 ]
 do
+	count=$((count + 1))
 	if [ -z $HOST ]
 	then
 	HOST=$(selectPeer)
 	printLog "Peer $HOST selected from peertab."
-
 	else
 	printLog "User supplied $HOST as target peer."
 	fi
@@ -184,6 +185,7 @@ do
 	then
 	ssh -i $KEYFILE $HOST nsaflood --garbage-file $GARBAGEFILE --ttl $TTL &
 	printLog "Garbagefile $GARBAGEFILE successfully transfered to peer $HOST."
+	break
 
 	else
 	printLog "Error: Could not transfer garbagefile $GARBAGEFILE to peer $HOST, selecting new peer from peertab."
