@@ -14,6 +14,7 @@ CONFIGFILE="nsaflood.conf"
 CONFIGPEERTAB="peertab"
 LOGDIR="/var/log/nsaflood"
 NSAFLOODUSER="nsaflood"
+NSAFLOODRNG=
 
 if [ $UID != 0 ]; then
 
@@ -210,6 +211,30 @@ This may be due to insufficient file permissions.
 Exiting..."
 		exit 2
 	fi
+fi
+
+echo -ne "Selecting system RNG device... "
+
+if [ -c /dev/arandom ]
+then
+	NSAFLOODRNG=/dev/arandom
+	echo -e "/dev/arandom			\E[32m[success!]\E[0m"
+	echo "NSAFLOODRNG=$NSAFLOODRNG" >> $CONFIGDIR/$CONFIGFILE
+elif [ -c /dev/urandom ]
+then
+	NSAFLOODRNG=/dev/urandom
+	echo -e "/dev/urandom			\E[32m[success!]\E[0m"
+	echo "NSAFLOODRNG=$NSAFLOODRNG" >> $CONFIGDIR/$CONFIGFILE
+elif [ -c /dev/random ]
+then
+	NSAFLOODRNG=/dev/random
+	echo -e "/dev/random			\E[32m[success!]\E[0m"
+	echo "NSAFLOODRNG=$NSAFLOODRNG" >> $CONFIGDIR/$CONFIGFILE
+else
+	echo -e "				\E[31m[FAILURE!]\E[0m
+ERROR: Could not find an RNG device
+Exiting..."
+		exit 2
 fi
 
 echo -n "Updating file ownership and permissions of $CONFIGFILE...	"
