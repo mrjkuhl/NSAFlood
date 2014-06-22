@@ -1,4 +1,3 @@
 Release 1.4.0:
 -----------------
-- Add logging capability
-- Add hopping functionality, hop $GARBAGEFILE from remote host to remote host
+- Fix hopping. Currently requires keys for two following hosts to be located on current host
