@@ -246,10 +246,9 @@ def startServer():
 
 		ttlFilePointer.close();
 
-		os.remove(ttlFile);
-
 		garbagefile = decryptGarbagefile(garbagefile, garbagekey);
 
+		os.remove(ttlFile);
 		os.remove(garbagekey);
 
 		subprocess.call(["nsaflood.py", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
@@ -427,6 +426,7 @@ def main():
 
 	server.close();
 
+	os.remove(ttlFile);
 	os.remove(garbagefile);
 	os.remove(garbagekey);
 
