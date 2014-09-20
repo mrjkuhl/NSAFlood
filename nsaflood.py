@@ -57,10 +57,22 @@ def selectPeer(unreachableHosts=[]):
 
 	return selectedHost;
 
+def createGarbagefile(garbagefileSize=0):
+
+	garbagefileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-garbagefile.XXXX"], stdout=subprocess.PIPE).communicate()[0];
+	garbagefileName = garbagefileName.splitlines()[0];
+
+	garbagefile = open(garbagefileName, 'w');
+	garbagefile.write(os.urandom(garbagefileSize));
+	garbagefile.close();
+
+	return garbagefileName;
+
 def createGarbagekey(garbagekeySize=0):
 
 	garbagekeyName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-garbagekey.XXXX"], stdout=subprocess.PIPE).communicate()[0];
-	garbagekeyName = garbagekeyName.splitlines()[0]
+	garbagekeyName = garbagekeyName.splitlines()[0];
+
 	garbagekey = open(garbagekeyName, 'w');
 	#change out to openssl rand 128
 	garbagekey.write(os.urandom(garbagekeySize));
@@ -68,35 +80,56 @@ def createGarbagekey(garbagekeySize=0):
 
 	return garbagekeyName;
 
-def createGarbagefile(garbagefileSize=0):
+def createTTLFile(garbagefileTTL=""):
 
-	garbagefileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-garbagefile.XXXX"], stdout=subprocess.PIPE).communicate()[0];
-	garbagefileName = garbagefileName.splitlines()[0]
-	garbagefile = open(garbagefileName, 'w');
-	garbagefile.write(os.urandom(garbagefileSize));
-	garbagefile.close();
+	ttlFileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-ttlFile.XXXX"], stdout=subprocess.PIPE).communicate()[0];
+	ttlFileName = ttlFileName.splitlines()[0];
 
-	return garbagefileName;
+	ttlFile = open(ttlFileName, 'w');
+	ttlFile.write(str(garbagefileTTL));
+	ttlFile.close();
 
-def encryptGarbagefile(garbagefile, cryptoKey):
+	return ttlFileName
+
+def encryptGarbagefile(garbagefile, garbagekey):
 
 	newGarbagefile = createGarbagefile();
 
-	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + cryptoKey]);
+	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + garbagekey]);
 
 	os.remove(garbagefile);
 
 	return newGarbagefile;
 
-def decryptGarbagefile(garbagefile, cryptoKey):
+def decryptGarbagefile(garbagefile, garbagekey):
 
 	newGarbagefile = createGarbagefile();
 
-	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + cryptoKey]);
+	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + garbagekey]);
 
 	os.remove(garbagefile);
 
 	return newGarbagefile;
+
+def encryptTTLFile(ttlFile, garbagekey):
+
+	newTTLFile = createTTLFile();
+
+	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", ttlFile, "-out", newTTLFile, "-pass", "file:" + garbagekey]);
+
+	os.remove(ttlFile);
+
+	return newTTLFile;
+
+def decryptTTLFile(ttlFile, garbagekey):
+
+	newTTLFile = createTTLFile();
+
+	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", ttlFile, "-out", newTTLFile, "-pass", "file:" + garbagekey]);
+
+	os.remove(ttlFile);
+
+	return newTTLFile;
 
 def encryptGarbagekey(garbagekey, publickey):
 
@@ -117,6 +150,7 @@ def decryptGarbagekey(garbagekey, privatekey):
 	os.remove(garbagekey);
 
 	return newGarbagekey;
+
 
 def readFileChunks(file, fileChunkSize=1024):
 
@@ -148,10 +182,11 @@ def startServer():
 
 		garbagefile = createGarbagefile();
 		garbagekey = createGarbagekey();
-		garbagefileTTL = 0;
+		ttlFile = createTTLFile();
 
 		garbagefilePointer = open(garbagefile, "a");
 		garbagekeyPointer = open(garbagekey, "a");
+		ttlFilePointer = open(ttlFile, "a");
 
 		transferState = 0;
 
@@ -164,26 +199,36 @@ def startServer():
 
 				transferState += 1;
 
-				if transferState == 2:
+				if transferState == 1:
+
+					ttlFilePointer.close();
+
+					print "nsaflood server: ttlFile transfer finished.";
+
+				elif transferState == 2:
 
 					garbagefilePointer.close();
+
 					print "nsaflood server: Garbagefile transfer finished."
 
-				if transferState == 3:
+				elif transferState == 3:
 
 					print "nsaflood server: Garbagekey transfer finished."
 					print "nsaflood server: Connection from " + str(address) + " finished";
 
 					garbagekeyPointer.close();
+					garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
+
 					connection.close();
+
 					break;
 
 				continue
 
 			if transferState == 0:
 
-				garbagefileTTL = int(data);
-				print garbagefileTTL;
+				#garbagefileTTL = int(data);
+				ttlFilePointer.write(data);
 
 			elif transferState == 1:
 
@@ -193,7 +238,16 @@ def startServer():
 
 				garbagekeyPointer.write(data);
 
-		garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
+		ttlFile = decryptTTLFile(ttlFile, garbagekey);
+
+		ttlFilePointer = open(ttlFile, "r");
+
+		garbagefileTTL = ttlFilePointer.read(1);
+
+		ttlFilePointer.close();
+
+		os.remove(ttlFile);
+
 		garbagefile = decryptGarbagefile(garbagefile, garbagekey);
 
 		os.remove(garbagekey);
@@ -332,13 +386,18 @@ def main():
 
 	publickey = "/etc/nsaflood/pubkeys/" + host;
 	garbagekey = createGarbagekey(defaultKeyfileSize);
+	ttlFile = createTTLFile(garbagefileTTL);
 
+	ttlFile = encryptTTLFile(ttlFile, garbagekey);
 	garbagefile = encryptGarbagefile(garbagefile, garbagekey);
 	garbagekey = encryptGarbagekey(garbagekey, publickey);
 
 	#get some rate limiting in here
 	#encrypt ttl
-	server.send(str(garbagefileTTL));
+	#server.send(str(garbagefileTTL));
+	for data in readFileChunks(ttlFile, 4096):
+
+		server.send(data);
 
 	time.sleep(1);
 
