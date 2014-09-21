@@ -192,7 +192,7 @@ def startServer():
 
 		while True:
 
-			#get some rate limiting in here
+			#download limit here
 			data = connection.recv(4096);
 
 			if data == "\r\n\n":
@@ -227,7 +227,6 @@ def startServer():
 
 			if transferState == 0:
 
-				#garbagefileTTL = int(data);
 				ttlFilePointer.write(data);
 
 			elif transferState == 1:
@@ -392,10 +391,11 @@ def main():
 	garbagekey = encryptGarbagekey(garbagekey, publickey);
 
 	#get some rate limiting in here
-	#encrypt ttl
-	#server.send(str(garbagefileTTL));
+	#connectionsSent = 0;
+	#startTime = time.time();
 	for data in readFileChunks(ttlFile, 4096):
 
+		#upload limit here
 		server.send(data);
 
 	time.sleep(1);
@@ -406,6 +406,7 @@ def main():
 
 	for data in readFileChunks(garbagefile, 4096):
 
+		#upload limit here
 		server.send(data);
 
 	time.sleep(1);
@@ -416,6 +417,7 @@ def main():
 
 	for data in readFileChunks(garbagekey, 4096):
 
+		#upload limit here
 		server.send(data);
 
 	time.sleep(1);
