@@ -190,52 +190,67 @@ def startServer():
 
 		transferState = 0;
 
+		connectionsReceived = 0;
+		startTime = time.time();
+
 		while True:
 
 			#download limit here
-			data = connection.recv(4096);
+			if time.time() >= startTime + 1:
 
-			if data == "\r\n\n":
+				connectionsReceived = 0;
+				startTime = time.time();
 
-				transferState += 1;
+			if connectionsReceived >= 32:
 
-				if transferState == 1:
+				time.sleep(0.05);
 
-					ttlFilePointer.close();
+			else:
 
-					print "nsaflood server: ttlFile transfer finished.";
+				data = connection.recv(1024);
+				connectionsReceived += 1;
+
+				if data == "\r\n\n":
+
+					transferState += 1;
+
+					if transferState == 1:
+
+						ttlFilePointer.close();
+
+						print "nsaflood server: ttlFile transfer finished.";
+
+					elif transferState == 2:
+
+						garbagefilePointer.close();
+
+						print "nsaflood server: Garbagefile transfer finished."
+
+					elif transferState == 3:
+
+						print "nsaflood server: Garbagekey transfer finished."
+						print "nsaflood server: Connection from " + str(address) + " finished";
+
+						garbagekeyPointer.close();
+						garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
+
+						connection.close();
+
+						break;
+
+					continue
+
+				if transferState == 0:
+
+					ttlFilePointer.write(data);
+
+				elif transferState == 1:
+
+					garbagefilePointer.write(data);
 
 				elif transferState == 2:
 
-					garbagefilePointer.close();
-
-					print "nsaflood server: Garbagefile transfer finished."
-
-				elif transferState == 3:
-
-					print "nsaflood server: Garbagekey transfer finished."
-					print "nsaflood server: Connection from " + str(address) + " finished";
-
-					garbagekeyPointer.close();
-					garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
-
-					connection.close();
-
-					break;
-
-				continue
-
-			if transferState == 0:
-
-				ttlFilePointer.write(data);
-
-			elif transferState == 1:
-
-				garbagefilePointer.write(data);
-
-			elif transferState == 2:
-
-				garbagekeyPointer.write(data);
+					garbagekeyPointer.write(data);
 
 		ttlFile = decryptTTLFile(ttlFile, garbagekey);
 
@@ -391,12 +406,28 @@ def main():
 	garbagekey = encryptGarbagekey(garbagekey, publickey);
 
 	#get some rate limiting in here
-	#connectionsSent = 0;
-	#startTime = time.time();
-	for data in readFileChunks(ttlFile, 4096):
+
+	connectionsSent = 0;
+	startTime = time.time();
+
+	for data in readFileChunks(ttlFile, 1024):
 
 		#upload limit here
-		server.send(data);
+		while True:
+			if time.time() >= startTime + 1:
+
+				connectionsSent = 0;
+				startTime = time.time();
+
+			if connectionsSent >= 32:
+
+				time.sleep(0.05);
+
+			else:
+
+				server.send(data);
+				connectionsSent += 1;
+				break;
 
 	time.sleep(1);
 
@@ -404,10 +435,24 @@ def main():
 
 	time.sleep(1);
 
-	for data in readFileChunks(garbagefile, 4096):
+	for data in readFileChunks(garbagefile, 1024):
 
 		#upload limit here
-		server.send(data);
+		while True:
+			if time.time() >= startTime + 1:
+
+				connectionsSent = 0;
+				startTime = time.time();
+
+			if connectionsSent >= 32:
+
+				time.sleep(0.05);
+
+			else:
+
+				server.send(data);
+				connectionsSent += 1;
+				break;
 
 	time.sleep(1);
 
@@ -415,10 +460,24 @@ def main():
 
 	time.sleep(1);
 
-	for data in readFileChunks(garbagekey, 4096):
+	for data in readFileChunks(garbagekey, 1024):
 
 		#upload limit here
-		server.send(data);
+		while True:
+			if time.time() >= startTime + 1:
+
+				connectionsSent = 0;
+				startTime = time.time();
+
+			if connectionsSent >= 32:
+
+				time.sleep(0.05);
+
+			else:
+
+				server.send(data);
+				connectionsSent += 1;
+				break;
 
 	time.sleep(1);
 
