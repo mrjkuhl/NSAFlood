@@ -265,13 +265,17 @@ def startServer():
 		os.remove(ttlFile);
 		os.remove(garbagekey);
 
-		subprocess.call(["nsaflood.py", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
+		if (int(garbagefileTTL) <= 8):
+			subprocess.call(["nsaflood.py", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
+		elif (int(garbagefileTTL) == 9):
+			subprocess.call(["tar", "-xf", garbagefile]);
 
 def main():
 
 	parser = argparse.ArgumentParser();
 
 	parser.add_argument("-S", "--start-server", help="Start the listening server", action="store_true");
+	parser.add_argument("-f", "--file", help="File to be transfered hidden as a garbagefile.");
 	parser.add_argument("-H", "--host", help="The destination host");
 	parser.add_argument("-s", "--file-size", help="Size of the file to be generated in MiB");
 	parser.add_argument("-b", "--bandwidth", help="Upload speed limit in Kib");
@@ -323,7 +327,7 @@ def main():
 
 		print "nsaflood: Garbagefile provided, garbagefile is " + garbagefile;
 
-	else:
+	elif args.file == None:
 
 		print "nsaflood: Garbagefile not provided. Creating new garbagefile filled with random data.";
 
@@ -346,11 +350,26 @@ def main():
 
 		return 0;
 
-	elif args.ttl == None:
+	elif args.ttl == None and args.file == None:
 
 		garbagefileTTL = defaultTTL;
 
 		print "nsaflood: TTL not provided, set to " + str(defaultTTL) + ".";
+
+	if args.file:
+
+		fileSize = subprocess.Popen(["wc", "-c", args.file], stdout=subprocess.PIPE).communicate()[0];
+		fileSize = fileSize.split(" ")[0];
+		garbagefileSize = garbagefileSize - int(fileSize);
+
+		garbagefileFiller = createGarbagefile(garbagefileSize);
+		garbagefile = createGarbagefile();
+
+		subprocess.call(["tar", "-cf", garbagefile, args.file, garbagefileFiller]);
+
+		os.remove(garbagefileFiller);
+
+		garbagefileTTL = 9;
 
 	server = socket.socket();
 	port = 17666;
