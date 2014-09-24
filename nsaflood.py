@@ -57,6 +57,10 @@ def selectPeer(unreachableHosts=[]):
 
 	return selectedHost;
 
+def varyGarbagefileSize(garbagefileSize, fileSizeVariance):
+
+	return random.randrange(1, int(int(garbagefileSize) * float(fileSizeVariance) + 1));
+
 def createGarbagefile(garbagefileSize=0):
 
 	garbagefileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-garbagefile.XXXX"], stdout=subprocess.PIPE).communicate()[0];
@@ -272,6 +276,8 @@ def startServer():
 
 def main():
 
+	fileSizeVariance = 0.1;
+
 	parser = argparse.ArgumentParser();
 
 	parser.add_argument("-S", "--start-server", help="Start the listening server", action="store_true");
@@ -312,6 +318,8 @@ def main():
 	else:
 
 		garbagefileSize = 1024 * 1024;
+
+	garbagefileSize += varyGarbagefileSize(garbagefileSize, fileSizeVariance);
 
 	if args.bandwidth:
 
@@ -360,6 +368,7 @@ def main():
 
 		fileSize = subprocess.Popen(["wc", "-c", args.file], stdout=subprocess.PIPE).communicate()[0];
 		fileSize = fileSize.split(" ")[0];
+
 		garbagefileSize = garbagefileSize - int(fileSize);
 
 		garbagefileFiller = createGarbagefile(garbagefileSize);
