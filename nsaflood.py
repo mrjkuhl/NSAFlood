@@ -276,8 +276,6 @@ def startServer():
 
 def main():
 
-	fileSizeVariance = 0.1;
-
 	parser = argparse.ArgumentParser();
 
 	parser.add_argument("-S", "--start-server", help="Start the listening server", action="store_true");
@@ -290,6 +288,14 @@ def main():
 	parser.add_argument("--version", help="Display version and copyright information", action="store_true");
 
 	args = parser.parse_args();
+
+	if args.file:
+
+		fileSizeVariance = 0.09;
+
+	else:
+
+		fileSizeVariance = 0.1;
 
 	if args.start_server:
 		startServer();
