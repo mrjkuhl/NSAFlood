@@ -57,6 +57,12 @@ def selectPeer(unreachableHosts=[]):
 
 	return selectedHost;
 
+def printServerOutput(message):
+
+	print time.strftime("%H:%M:%S") + " nsaflood server: " + message + ".";
+
+	return;
+
 def varyGarbagefileSize(garbagefileSize, fileSizeVariance):
 
 	return random.randrange(1, int(int(garbagefileSize) * float(fileSizeVariance) + 1));
@@ -222,18 +228,18 @@ def startServer():
 
 						ttlFilePointer.close();
 
-						print "nsaflood server: ttlFile transfer finished.";
+						printServerOutput("ttlFile transfer finished");
 
 					elif transferState == 2:
 
 						garbagefilePointer.close();
 
-						print "nsaflood server: Garbagefile transfer finished."
+						printServerOutput("Garbagefile transfer finished");
 
 					elif transferState == 3:
 
-						print "nsaflood server: Garbagekey transfer finished."
-						print "nsaflood server: Connection from " + str(address) + " finished";
+						printServerOutput("Garbagekey transfer finished");
+						printServerOutput("Connection from " + str(address) + " finished");
 
 						garbagekeyPointer.close();
 						garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
