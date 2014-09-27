@@ -28,6 +28,8 @@ defaultTTL=8;
 defaultKeyfileSize=256;
 defaultConnectAttempts=5;
 
+fileDelimiter = "\r\n\r\n";
+
 def selectPeer(unreachableHosts=[]):
 
 	peersCount = subprocess.Popen(["wc", "-l", "/etc/nsaflood/peertab"], stdout=subprocess.PIPE).communicate()[0];
@@ -220,19 +222,25 @@ def startServer():
 				data = connection.recv(1024);
 				connectionsReceived += 1;
 
-				if data == "\r\n\n":
+				if fileDelimiter in data:
+
+					data = data.split(fileDelimiter);
 
 					transferState += 1;
 
 					if transferState == 1:
 
+						ttlFilePointer.write(data[0]);
 						ttlFilePointer.close();
+						garbagefilePointer.write(data[1]);
 
 						printServerOutput("ttlFile transfer finished");
 
 					elif transferState == 2:
 
+						garbagefilePointer.write(data[0]);
 						garbagefilePointer.close();
+						garbagekeyPointer.write(data[1]);
 
 						printServerOutput("Garbagefile transfer finished");
 
@@ -241,6 +249,7 @@ def startServer():
 						printServerOutput("Garbagekey transfer finished");
 						printServerOutput("Connection from " + str(address) + " finished");
 
+						garbagekeyPointer.write(data[0]);
 						garbagekeyPointer.close();
 						garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
 
@@ -471,7 +480,7 @@ def main():
 
 	time.sleep(1);
 
-	server.send("\r\n\n");
+	server.send(fileDelimiter);
 
 	time.sleep(1);
 
@@ -496,7 +505,7 @@ def main():
 
 	time.sleep(1);
 
-	server.send("\r\n\n");
+	server.send(fileDelimiter);
 
 	time.sleep(1);
 
@@ -521,7 +530,7 @@ def main():
 
 	time.sleep(1);
 
-	server.send("\r\n\n");
+	server.send(fileDelimiter);
 
 	print "Finished file transfer.";
 
