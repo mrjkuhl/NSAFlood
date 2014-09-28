@@ -29,7 +29,7 @@ defaultTTL=8;
 defaultKeyfileSize=256;
 defaultConnectAttempts=5;
 
-fileDelimiter = "\r\n\r\n";
+fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
 
 def selectPeer(unreachableHosts=[]):
 
