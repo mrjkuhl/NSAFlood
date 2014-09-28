@@ -21,6 +21,7 @@ import subprocess
 import socket
 import argparse
 import linecache
+import ConfigParser
 
 import time
 
@@ -180,6 +181,8 @@ def readFileChunks(file, fileChunkSize=1024):
 
 def startServer():
 
+	downloadBandwidth = int(confParse.get('server', 'DEFAULTBANDWIDTH')) / 8;
+
 	server = socket.socket();
 
 	host = socket.gethostname();
@@ -213,7 +216,7 @@ def startServer():
 				connectionsReceived = 0;
 				startTime = time.time();
 
-			if connectionsReceived >= 32:
+			if connectionsReceived >= downloadBandwidth:
 
 				time.sleep(0.05);
 
@@ -313,14 +316,17 @@ def main():
 		fileSizeVariance = 0.1;
 
 	if args.start_server:
+
 		startServer();
 		return 0;
 
 	if args.version:
+
 		print "poop";
 		return 0;
 
 	if args.host:
+
 		host = args.host;
 
 		print "nsaflood: Host provided, host is " + host;
@@ -344,11 +350,11 @@ def main():
 
 	if args.bandwidth:
 
-		uploadBandwidth = args.bandwidth;
+		uploadBandwidth = int(args.bandwidth) / 8;
 
 	else:
 
-		uploadBandwidth = 2048;
+		uploadBandwidth = int(confParse.get('client', 'DEFAULTBANDWIDTH')) / 8;
 
 	if args.garbage_file:
 
@@ -468,7 +474,7 @@ def main():
 				connectionsSent = 0;
 				startTime = time.time();
 
-			if connectionsSent >= 32:
+			if connectionsSent >= uploadBandwidth:
 
 				time.sleep(0.05);
 
@@ -493,7 +499,7 @@ def main():
 				connectionsSent = 0;
 				startTime = time.time();
 
-			if connectionsSent >= 32:
+			if connectionsSent >= uploadBandwidth:
 
 				time.sleep(0.05);
 
@@ -518,7 +524,7 @@ def main():
 				connectionsSent = 0;
 				startTime = time.time();
 
-			if connectionsSent >= 32:
+			if connectionsSent >= uploadBandwidth:
 
 				time.sleep(0.05);
 
@@ -542,5 +548,10 @@ def main():
 
 if __name__ == "__main__":
 
-	main()
+	confFile = r'/etc/nsaflood/nsaflood.conf';
+
+	confParse = ConfigParser.RawConfigParser();
+	confParse.read(confFile);
+
+	main();
 
