@@ -1,4 +1,4 @@
-.TH NSAFLOOD 1 "06/18/2014" "1.3.2"
+.TH NSAFLOOD 1 "09/19/2014" "2.0"
 .SH NAME
 nsaflood \- Flood the Internet with encrypted data
 .SH SYNOPSIS
@@ -8,29 +8,36 @@ nsaflood \- Flood the Internet with encrypted data
 .B NSAFlood
 creates a file of junk data read from /dev/urandom, and transmits it across networked computers. NSAFlood was made specifically to combat Internet surveillance, by transmitting large amounts of encrypted data across the Internet, which the United States National Security Agency (NSA) must copy and store in its entirety, indefinatily, as is their policy for all encrypted Internet traffic.
 
-It is recommended that you schedule nsaflood to run periodically through nsaf-sched, and that you use a strong password or key for the user and host that you target with nsaflood.
+It is recommended that you schedule nsaflood to run periodically through the crontab, and that you use a strong password or key for the user and host that you target with nsaflood.
 .SH OPTIONS
 .TP
 
-.BR \-b\ \fIKilobits/s\fR ", " \-\-bandwidth\ \fIKilobits/s\fR
-	Limit the bandwidth used by the program. Default is 
-	2048 Kilobits/second. Measured by Kilobits/S.
-
-.TP
 .BR \-h\ \fIuser@host\fR ", " \-\-host\ \fIuser@host\fR
 	Username and IP address of target machine.
-
-.TP
-.BR \-k\ \fIkeyfile\fR ", " \-\-key-file\ \fIkeyfile\fR
-	Key which may be used to connect to the host in place of a 
-	password
 
 .TP
 .BR \-s\ \fIsize\fR ", " \-\-file-size\ \fIsize\fR
 	Size of the file to be transmitted, measured in Megabytes. 
 
 .TP
-.BR \-V ", " \-\-version\fR
+.BR \-b\ \fIKilobits/s\fR ", " \-\-bandwidth\ \fIKilobits/s\fR
+	Limit the bandwidth used by the program. Default is 
+	512 Kilobits/second. Measured by Kilobits/S.
+
+.TP
+.BR \-g ", " \-\-garbage-file\fR
+	The garbagefile to be transfered to the next host.
+
+.TP
+.BR \-t ", " \-\-ttl\fR
+	The TTL of the current garbagefile.
+
+.TP
+.BR \-S ", " \-\-start\-server\fR
+	Start the listening server.
+
+.TP
+.BR \-\-version\fR
 	Get the version and copyright information of NSAFlood.
 
 .TP

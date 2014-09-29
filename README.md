@@ -1,12 +1,12 @@
 NSAFlood
 --------
 
-This directory contains the 1.3.2 release of NSAFlood.
+This directory contains the 2.0 release of NSAFlood.
 
 About
 -----
 
-NSAFlood is a BASH program which aims to be used as a weapon against Internet 
+NSAFlood is a program which aims to be used as a weapon against Internet 
 surveillance. NSAFlood achieves this goal through the transfer of encrypted data
  between two or more computers connected to the Internet.
 
@@ -27,18 +27,13 @@ will not be overwritten (this does not apply to bin and man files).
 Usage
 -----
 
-	nsaflood -b=2048 -k=/home/user/.ssh/privkey -s=10 -h=user@remotehost
+	nsaflood -s 10 -h remotehost
 
 See the man page for documentation.
 
-To schedule nsaflood in the crontab, log in to root and use the nsaf-sched 
-program.
+To schedule nsaflood in the crontab, log in to root and edit the crontab.
 
-	nsaf-sched -b=2048 -k=/home/user/.ssh/privkey -s=1000 -h-user@remotehost
-	nsaf-sched --list -h=user@remotehost
-	nsaf-sched --delete=7
-
-See the nsaf-sched man page for documentation.
+	* 2 * * * root /usr/local/bin/nsaflood --file-size 1000 --host www.newphoenixrise.com
 
 Licensing
 ---------
