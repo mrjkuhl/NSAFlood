@@ -82,66 +82,45 @@ def createFile(fileName, fileSize=0):
 
 	return fileName;
 
-def encryptGarbagefile(garbagefile, garbagekey):
+def encryptFile(file, key, fileName):
 
-	newGarbagefile = createFile("garbagefile");
+	newFile = createFile(fileName);
 
-	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + garbagekey]);
+	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", file, "-out", newFile, "-pass", "file:" + key]);
 
-	os.remove(garbagefile);
+	os.remove(file);
 
-	return newGarbagefile;
+	return newFile;
 
-def decryptGarbagefile(garbagefile, garbagekey):
+def decryptFile(file, key, fileName):
 
-	newGarbagefile = createFile("garbagefile");
+	newFile = createFile(fileName);
 
-	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + garbagekey]);
+	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", file, "-out", newFile, "-pass", "file:" + key]);
 
-	os.remove(garbagefile);
+	os.remove(file);
 
-	return newGarbagefile;
+	return newFile;
 
-def encryptTTLFile(ttlFile, garbagekey):
+def rsaEncryptFile(file, pubKey, fileName):
 
-	newTTLFile = createFile("ttlfile");
+	newFile = createFile(fileName);
 
-	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", ttlFile, "-out", newTTLFile, "-pass", "file:" + garbagekey]);
+	subprocess.call(["openssl", "rsautl", "-encrypt", "-inkey", pubKey, "-pubin", "-in", file, "-out", newFile]);
+	
+	os.remove(file);
 
-	os.remove(ttlFile);
+	return newFile;
 
-	return newTTLFile;
+def rsaDecryptFile(file, prvKey, fileName):
 
-def decryptTTLFile(ttlFile, garbagekey):
+	newFile = createFile(fileName);
 
-	newTTLFile = createFile("ttlfile");
+	subprocess.call(["openssl", "rsautl", "-decrypt", "-inkey", prvKey, "-in", file, "-out", newFile]);
 
-	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", ttlFile, "-out", newTTLFile, "-pass", "file:" + garbagekey]);
+	os.remove(file);
 
-	os.remove(ttlFile);
-
-	return newTTLFile;
-
-def encryptGarbagekey(garbagekey, publickey):
-
-	newGarbagekey = createFile("garbagekey");
-
-	subprocess.call(["openssl", "rsautl", "-encrypt", "-inkey", publickey, "-pubin", "-in", garbagekey, "-out", newGarbagekey]);
-
-	os.remove(garbagekey);
-
-	return newGarbagekey;
-
-def decryptGarbagekey(garbagekey, privatekey):
-
-	newGarbagekey = createFile("garbagekey");
-
-	subprocess.call(["openssl", "rsautl", "-decrypt", "-inkey", privatekey, "-in", garbagekey, "-out", newGarbagekey]);
-
-	os.remove(garbagekey);
-
-	return newGarbagekey;
-
+	return newFile;
 
 def readFileChunks(file, fileChunkSize=1024):
 
@@ -232,7 +211,7 @@ def startServer():
 
 						garbagekeyPointer.write(data[0]);
 						garbagekeyPointer.close();
-						garbagekey = decryptGarbagekey(garbagekey, "/etc/nsaflood/privatekey");
+						garbagekey = rsaDecryptFile(garbagekey, "/etc/nsaflood/privatekey", "garbagekey");
 
 						connection.close();
 
@@ -252,7 +231,7 @@ def startServer():
 
 					garbagekeyPointer.write(data);
 
-		ttlFile = decryptTTLFile(ttlFile, garbagekey);
+		ttlFile = decryptFile(ttlFile, garbagekey, "ttlfile");
 
 		ttlFilePointer = open(ttlFile, "r");
 
@@ -260,7 +239,7 @@ def startServer():
 
 		ttlFilePointer.close();
 
-		garbagefile = decryptGarbagefile(garbagefile, garbagekey);
+		garbagefile = decryptFile(garbagefile, garbagekey, "garbagefile");
 
 		os.remove(ttlFile);
 		os.remove(garbagekey);
@@ -440,9 +419,9 @@ def main():
 	ttlFilePointer.write(str(garbagefileTTL));
 	ttlFilePointer.close();
 
-	ttlFile = encryptTTLFile(ttlFile, garbagekey);
-	garbagefile = encryptGarbagefile(garbagefile, garbagekey);
-	garbagekey = encryptGarbagekey(garbagekey, publickey);
+	ttlFile = encryptFile(ttlFile, garbagekey, "ttlfile");
+	garbagefile = encryptFile(garbagefile, garbagekey, "garbagefile");
+	garbagekey = rsaEncryptFile(garbagekey, publickey, "garbagekey");
 
 	#get some rate limiting in here
 
