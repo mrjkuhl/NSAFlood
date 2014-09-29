@@ -70,43 +70,21 @@ def varyGarbagefileSize(garbagefileSize, fileSizeVariance):
 
 	return random.randrange(1, int(int(garbagefileSize) * float(fileSizeVariance) + 1));
 
-def createGarbagefile(garbagefileSize=0):
+def createFile(fileName, fileSize=0):
 
-	garbagefileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-garbagefile.XXXX"], stdout=subprocess.PIPE).communicate()[0];
-	garbagefileName = garbagefileName.splitlines()[0];
+	fileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-" + fileName + ".XXXX"], stdout=subprocess.PIPE);
+	fileName = fileName.communicate()[0].splitlines()[0];
 
-	garbagefile = open(garbagefileName, 'w');
-	garbagefile.write(os.urandom(garbagefileSize));
-	garbagefile.close();
+	file = open(fileName, 'w');
 
-	return garbagefileName;
+	file.write(os.urandom(fileSize));
+	file.close();
 
-def createGarbagekey(garbagekeySize=0):
-
-	garbagekeyName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-garbagekey.XXXX"], stdout=subprocess.PIPE).communicate()[0];
-	garbagekeyName = garbagekeyName.splitlines()[0];
-
-	garbagekey = open(garbagekeyName, 'w');
-	#change out to openssl rand 128
-	garbagekey.write(os.urandom(garbagekeySize));
-	garbagekey.close();
-
-	return garbagekeyName;
-
-def createTTLFile(garbagefileTTL=""):
-
-	ttlFileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-ttlFile.XXXX"], stdout=subprocess.PIPE).communicate()[0];
-	ttlFileName = ttlFileName.splitlines()[0];
-
-	ttlFile = open(ttlFileName, 'w');
-	ttlFile.write(str(garbagefileTTL));
-	ttlFile.close();
-
-	return ttlFileName
+	return fileName;
 
 def encryptGarbagefile(garbagefile, garbagekey):
 
-	newGarbagefile = createGarbagefile();
+	newGarbagefile = createFile("garbagefile");
 
 	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + garbagekey]);
 
@@ -116,7 +94,7 @@ def encryptGarbagefile(garbagefile, garbagekey):
 
 def decryptGarbagefile(garbagefile, garbagekey):
 
-	newGarbagefile = createGarbagefile();
+	newGarbagefile = createFile("garbagefile");
 
 	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", garbagefile, "-out", newGarbagefile, "-pass", "file:" + garbagekey]);
 
@@ -126,7 +104,7 @@ def decryptGarbagefile(garbagefile, garbagekey):
 
 def encryptTTLFile(ttlFile, garbagekey):
 
-	newTTLFile = createTTLFile();
+	newTTLFile = createFile("ttlfile");
 
 	subprocess.call(["openssl", "enc", "-aes-256-cbc", "-salt", "-in", ttlFile, "-out", newTTLFile, "-pass", "file:" + garbagekey]);
 
@@ -136,7 +114,7 @@ def encryptTTLFile(ttlFile, garbagekey):
 
 def decryptTTLFile(ttlFile, garbagekey):
 
-	newTTLFile = createTTLFile();
+	newTTLFile = createFile("ttlfile");
 
 	subprocess.call(["openssl", "enc", "-d", "-aes-256-cbc", "-in", ttlFile, "-out", newTTLFile, "-pass", "file:" + garbagekey]);
 
@@ -146,7 +124,7 @@ def decryptTTLFile(ttlFile, garbagekey):
 
 def encryptGarbagekey(garbagekey, publickey):
 
-	newGarbagekey = createGarbagekey();
+	newGarbagekey = createFile("garbagekey");
 
 	subprocess.call(["openssl", "rsautl", "-encrypt", "-inkey", publickey, "-pubin", "-in", garbagekey, "-out", newGarbagekey]);
 
@@ -156,7 +134,7 @@ def encryptGarbagekey(garbagekey, publickey):
 
 def decryptGarbagekey(garbagekey, privatekey):
 
-	newGarbagekey = createGarbagekey();
+	newGarbagekey = createFile("garbagekey");
 
 	subprocess.call(["openssl", "rsautl", "-decrypt", "-inkey", privatekey, "-in", garbagekey, "-out", newGarbagekey]);
 
@@ -195,9 +173,9 @@ def startServer():
 
 		connection, address = server.accept();
 
-		garbagefile = createGarbagefile();
-		garbagekey = createGarbagekey();
-		ttlFile = createTTLFile();
+		garbagefile = createFile("garbagefile");
+		garbagekey = createFile("garbagekey");
+		ttlFile = createFile("ttlfile");
 
 		garbagefilePointer = open(garbagefile, "a");
 		garbagekeyPointer = open(garbagekey, "a");
@@ -288,7 +266,7 @@ def startServer():
 		os.remove(garbagekey);
 
 		if (int(garbagefileTTL) <= 8):
-			subprocess.call(["nsaflood.py", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
+			subprocess.call(["nsaflood", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
 		elif (int(garbagefileTTL) == 9):
 			subprocess.call(["tar", "-xf", garbagefile]);
 
@@ -366,7 +344,7 @@ def main():
 
 		print "nsaflood: Garbagefile not provided. Creating new garbagefile filled with random data.";
 
-		garbagefile = createGarbagefile(garbagefileSize);
+		garbagefile = createFile("garbagefile", garbagefileSize);
 
 		print "nsaflood: Garbagefile " + garbagefile + " created.";
 
@@ -400,8 +378,8 @@ def main():
 
 		garbagefileSize = garbagefileSize - int(fileSize);
 
-		garbagefileFiller = createGarbagefile(garbagefileSize);
-		garbagefile = createGarbagefile();
+		garbagefileFiller = createFile("garbagefile", garbagefileSize);
+		garbagefile = createFile("garbagefile");
 
 		subprocess.call(["tar", "-cf", garbagefile, args.file, garbagefileFiller]);
 
@@ -455,8 +433,12 @@ def main():
 			print "nsaflood: Host " + host + " selected.";
 
 	publickey = "/etc/nsaflood/pubkeys/" + host;
-	garbagekey = createGarbagekey(defaultKeyfileSize);
-	ttlFile = createTTLFile(garbagefileTTL);
+	garbagekey = createFile("garbagekey", defaultKeyfileSize);
+	ttlFile = createFile("ttlfile");
+
+	ttlFilePointer = open(ttlFile, 'w');
+	ttlFilePointer.write(str(garbagefileTTL));
+	ttlFilePointer.close();
 
 	ttlFile = encryptTTLFile(ttlFile, garbagekey);
 	garbagefile = encryptGarbagefile(garbagefile, garbagekey);
