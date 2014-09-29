@@ -378,14 +378,16 @@ def main():
 
 		print "nsaflood: TTL decremented to " + str(garbagefileTTL);
 
-	if args.ttl != None and int(args.ttl) == 0:
+	try:
 
-		print "nsaflood: The TTL of garbagefile " + garbagefile + "is 0.";
-		print "nsaflood: The garbgefile and garbagekey will be deleted.";
+		if garbagefileTTL == 0:
 
-		return 0;
+			print "nsaflood: The TTL of garbagefile " + garbagefile + "is 0.";
+			print "nsaflood: The garbgefile and garbagekey will be deleted.";
 
-	elif args.ttl == None and args.file == None:
+			return 0;
+
+	except NameError:
 
 		garbagefileTTL = defaultTTL;
 
