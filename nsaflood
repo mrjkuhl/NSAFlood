@@ -136,7 +136,21 @@ def readFileChunks(file, fileChunkSize=1024):
 
 		yield data;
 
-def writeFiles(downloadBandwidth, connection, address):
+# Limit bandwidth usage to user defined maximum
+def limitBandwidth(connections, startTime, bandwidthLimit):
+
+	if time.time() >= startTime + 1:
+
+		connections = 0;
+		startTime = time.time();
+
+	elif connections >= bandwidthLimit:
+
+		time.sleep(0.05);
+
+	return connections, startTime;
+
+def writeFiles(connection, address, bandwidthLimit):
 
 	garbagefile = createFile("garbagefile");
 	garbagekey = createFile("garbagekey");
@@ -153,17 +167,8 @@ def writeFiles(downloadBandwidth, connection, address):
 
 	while True:
 
-		#download limit here
-		if time.time() >= startTime + 1:
-
-			connectionsReceived = 0;
-			startTime = time.time();
-
-		if connectionsReceived >= downloadBandwidth:
-
-			time.sleep(0.05);
-
-		else:
+		connectionsReceived, startTime = limitBandwidth(connectionsReceived, startTime, bandwidthLimit);
+		if connectionsReceived < bandwidthLimit:
 
 			data = connection.recv(1024);
 			connectionsReceived += 1;
@@ -242,7 +247,7 @@ def writeFiles(downloadBandwidth, connection, address):
 
 def startServer():
 
-	downloadBandwidth = int(confParse.get('server', 'DEFAULTBANDWIDTH')) / 8;
+	bandwidthLimit = int(confParse.get('server', 'DEFAULTBANDWIDTH')) / 8;
 
 	server = socket.socket();
 
@@ -256,7 +261,7 @@ def startServer():
 
 		connection, address = server.accept();
 
-		writeFiles(downloadBandwidth, connection, address);
+		writeFiles(connection, address, bandwidthLimit);
 
 def main():
 
@@ -316,11 +321,11 @@ def main():
 
 	if args.bandwidth:
 
-		uploadBandwidth = int(args.bandwidth) / 8;
+		bandwidthLimit = int(args.bandwidth) / 8;
 
 	else:
 
-		uploadBandwidth = int(confParse.get('client', 'DEFAULTBANDWIDTH')) / 8;
+		bandwidthLimit = int(confParse.get('client', 'DEFAULTBANDWIDTH')) / 8;
 
 	if args.garbage_file:
 
@@ -432,25 +437,16 @@ def main():
 	garbagefile = encryptFile(garbagefile, garbagekey, "garbagefile");
 	garbagekey = rsaEncryptFile(garbagekey, publickey, "garbagekey");
 
-	#get some rate limiting in here
-
 	connectionsSent = 0;
 	startTime = time.time();
 
 	for data in readFileChunks(ttlFile, 1024):
 
-		#upload limit here
 		while True:
-			if time.time() >= startTime + 1:
 
-				connectionsSent = 0;
-				startTime = time.time();
+			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
 
-			if connectionsSent >= uploadBandwidth:
-
-				time.sleep(0.05);
-
-			else:
+			if connectionsSent < bandwidthLimit:
 
 				server.send(data);
 				connectionsSent += 1;
@@ -464,18 +460,11 @@ def main():
 
 	for data in readFileChunks(garbagefile, 1024):
 
-		#upload limit here
 		while True:
-			if time.time() >= startTime + 1:
 
-				connectionsSent = 0;
-				startTime = time.time();
+			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
 
-			if connectionsSent >= uploadBandwidth:
-
-				time.sleep(0.05);
-
-			else:
+			if connectionsSent < bandwidthLimit:
 
 				server.send(data);
 				connectionsSent += 1;
@@ -489,18 +478,11 @@ def main():
 
 	for data in readFileChunks(garbagekey, 1024):
 
-		#upload limit here
 		while True:
-			if time.time() >= startTime + 1:
 
-				connectionsSent = 0;
-				startTime = time.time();
+			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
 
-			if connectionsSent >= uploadBandwidth:
-
-				time.sleep(0.05);
-
-			else:
+			if connectionsSent < bandwidthLimit:
 
 				server.send(data);
 				connectionsSent += 1;
