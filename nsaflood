@@ -340,6 +340,8 @@ def main():
 			print "nsaflood: The TTL of " + garbagefile + " is 0.";
 			print "nsaflood: The garbagefile will be deleted.";
 
+			os.remove(garbagefile);
+
 			return 0;
 
 	except NameError:
