@@ -155,7 +155,7 @@ def receiveFile(file, connectionsReceived, startTime, connection, bandwidthLimit
 	filePointer = open(file, "a");
 	filePointer.write(excessData);
 
-	printServerOutput("Downloading file " + file + ".");
+	printServerOutput("Downloading file " + file);
 
 	while True:
 
@@ -174,7 +174,7 @@ def receiveFile(file, connectionsReceived, startTime, connection, bandwidthLimit
 				filePointer.write(data[0]);
 				filePointer.close();
 
-				printServerOutput("End of file message received.");
+				printServerOutput("End of file message received");
 				break;
 
 			filePointer.write(data);
