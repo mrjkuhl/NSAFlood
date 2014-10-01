@@ -253,19 +253,6 @@ def startServer():
 
 def main():
 
-	parser = argparse.ArgumentParser();
-
-	parser.add_argument("-S", "--start-server", help="Start the listening server", action="store_true");
-	parser.add_argument("-f", "--file", help="File to be transfered hidden as a garbagefile.");
-	parser.add_argument("-H", "--host", help="The destination host");
-	parser.add_argument("-s", "--file-size", help="Size of the file to be generated in MiB");
-	parser.add_argument("-b", "--bandwidth", help="Upload speed limit in Kib");
-	parser.add_argument("-g", "--garbage-file", help="The file to be sent to the recipient.");
-	parser.add_argument("-t", "--ttl", help="The time-to-live of the garbagefile");
-	parser.add_argument("--version", help="Display version and copyright information", action="store_true");
-
-	args = parser.parse_args();
-
 	if args.file:
 
 		fileSizeVariance = 0.09;
@@ -464,6 +451,19 @@ if __name__ == "__main__":
 	confParse.read(confFile);
 
 	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
+
+	parser = argparse.ArgumentParser();
+
+	parser.add_argument("-S", "--start-server", help="Start the listening server", action="store_true");
+	parser.add_argument("-f", "--file", help="File to be transfered hidden as a garbagefile.");
+	parser.add_argument("-H", "--host", help="The destination host");
+	parser.add_argument("-s", "--file-size", help="Size of the file to be generated in MiB");
+	parser.add_argument("-b", "--bandwidth", help="Upload speed limit in Kib");
+	parser.add_argument("-g", "--garbage-file", help="The file to be sent to the recipient.");
+	parser.add_argument("-t", "--ttl", help="The time-to-live of the garbagefile");
+	parser.add_argument("--version", help="Display version and copyright information", action="store_true");
+
+	args = parser.parse_args();
 
 	main();
 
