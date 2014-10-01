@@ -134,7 +134,7 @@ def readFileChunks(file, fileChunkSize=1024):
 
 		yield data;
 
-def sendFile(server, file, connectionsSent, startTime, bandwidthLimit):
+def sendFile(file, connectionsSent, startTime, server, bandwidthLimit):
 
 	for data in readFileChunks(file, 1024):
 
@@ -150,6 +150,37 @@ def sendFile(server, file, connectionsSent, startTime, bandwidthLimit):
 
 	return connectionsSent, startTime;
 
+def receiveFile(file, connectionsReceived, startTime, connection, bandwidthLimit, excessData=""):
+
+	filePointer = open(file, "a");
+	filePointer.write(excessData);
+
+	printServerOutput("Downloading file " + file + ".");
+
+	while True:
+
+		connectionsReceived, startTime = limitBandwidth(connectionsReceived, startTime, bandwidthLimit);
+
+		if connectionsReceived < bandwidthLimit:
+
+			data = connection.recv(1024);
+			connectionsReceived += 1;
+
+			if fileDelimiter in data:
+
+				data = data.split(fileDelimiter);
+				excessData = data[1];
+
+				filePointer.write(data[0]);
+				filePointer.close();
+
+				printServerOutput("End of file message received.");
+				break;
+
+			filePointer.write(data);
+
+	return connectionsReceived, startTime, excessData;
+
 # Limit bandwidth usage to user defined maximum
 def limitBandwidth(connections, startTime, bandwidthLimit):
 
@@ -164,96 +195,35 @@ def limitBandwidth(connections, startTime, bandwidthLimit):
 
 	return connections, startTime;
 
-def writeFiles(connection, address, bandwidthLimit):
+def writeFiles(connection, address, server, bandwidthLimit):
 
 	garbagefile = createFile("garbagefile");
 	garbagekey = createFile("garbagekey");
 	ttlFile = createFile("ttlfile");
 
-	garbagefilePointer = open(garbagefile, "a");
-	garbagekeyPointer = open(garbagekey, "a");
-	ttlFilePointer = open(ttlFile, "a");
-
-	transferState = 0;
-
 	connectionsReceived = 0;
 	startTime = time.time();
 
-	while True:
+	connectionsReceived, startTime, excessData = receiveFile(ttlFile, connectionsReceived, startTime, connection, bandwidthLimit);
+	connectionsReceived, startTime, excessData = receiveFile(garbagefile, connectionsReceived, startTime, connection, bandwidthLimit, excessData);
+	connectionsReceived, startTime, excessData = receiveFile(garbagekey, connectionsReceived, startTime, connection, bandwidthLimit, excessData);
 
-		connectionsReceived, startTime = limitBandwidth(connectionsReceived, startTime, bandwidthLimit);
-		if connectionsReceived < bandwidthLimit:
-
-			data = connection.recv(1024);
-			connectionsReceived += 1;
-
-			if fileDelimiter in data:
-
-				data = data.split(fileDelimiter);
-
-				transferState += 1;
-
-				if transferState == 1:
-
-					ttlFilePointer.write(data[0]);
-					ttlFilePointer.close();
-					garbagefilePointer.write(data[1]);
-
-					printServerOutput("ttlFile transfer finished");
-
-				elif transferState == 2:
-
-					garbagefilePointer.write(data[0]);
-					garbagefilePointer.close();
-					garbagekeyPointer.write(data[1]);
-
-					printServerOutput("Garbagefile transfer finished");
-
-				elif transferState == 3:
-
-					printServerOutput("Garbagekey transfer finished");
-					printServerOutput("Connection from " + str(address) + " finished");
-
-					garbagekeyPointer.write(data[0]);
-					garbagekeyPointer.close();
-					garbagekey = rsaDecryptFile(garbagekey, "/etc/nsaflood/privatekey", "garbagekey");
-
-					connection.close();
-
-					break;
-
-				continue
-
-			if transferState == 0:
-
-				ttlFilePointer.write(data);
-
-			elif transferState == 1:
-
-				garbagefilePointer.write(data);
-
-			elif transferState == 2:
-
-				garbagekeyPointer.write(data);
-
+	garbagekey = rsaDecryptFile(garbagekey, "/etc/nsaflood/privatekey", "garbagekey");
+	garbagefile = decryptFile(garbagefile, garbagekey, "garbagefile");
 	ttlFile = decryptFile(ttlFile, garbagekey, "ttlfile");
 
 	ttlFilePointer = open(ttlFile, "r");
-
-	garbagefileTTL = ttlFilePointer.read(1);
-
+	garbagefileTTL = int(ttlFilePointer.read(1));
 	ttlFilePointer.close();
-
-	garbagefile = decryptFile(garbagefile, garbagekey, "garbagefile");
 
 	os.remove(ttlFile);
 	os.remove(garbagekey);
 
-	if (int(garbagefileTTL) <= 8):
+	if (garbagefileTTL <= 8):
 
 		subprocess.call(["nsaflood", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
 
-	elif (int(garbagefileTTL) == 9):
+	elif (garbagefileTTL == 9):
 
 		subprocess.call(["tar", "-xf", garbagefile]);
 
@@ -275,7 +245,7 @@ def startServer():
 
 		connection, address = server.accept();
 
-		writeFiles(connection, address, bandwidthLimit);
+		writeFiles(connection, address, server, bandwidthLimit);
 
 def main():
 
@@ -454,7 +424,7 @@ def main():
 	connectionsSent = 0;
 	startTime = time.time();
 
-	connectionsSent, startTime = sendFile(server, ttlFile, connectionsSent, startTime, bandwidthLimit);
+	connectionsSent, startTime = sendFile(ttlFile, connectionsSent, startTime, server, bandwidthLimit);
 
 	time.sleep(1);
 
@@ -462,7 +432,7 @@ def main():
 
 	time.sleep(1);
 
-	connectionsSent, startTime = sendFile(server, garbagefile, connectionsSent, startTime, bandwidthLimit);
+	connectionsSent, startTime = sendFile(garbagefile, connectionsSent, startTime, server, bandwidthLimit);
 
 	time.sleep(1);
 
@@ -470,7 +440,7 @@ def main():
 
 	time.sleep(1);
 
-	connectionsSent, startTime = sendFile(server, garbagekey, connectionsSent, startTime, bandwidthLimit);
+	connectionsSent, startTime = sendFile(garbagekey, connectionsSent, startTime, server, bandwidthLimit);
 
 	time.sleep(1);
 
