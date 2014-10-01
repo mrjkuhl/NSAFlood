@@ -29,8 +29,6 @@ defaultTTL=8;
 defaultKeyfileSize=256;
 defaultConnectAttempts=5;
 
-fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
-
 def selectPeer(unreachableHosts=[]):
 
 	peersCount = subprocess.Popen(["wc", "-l", "/etc/nsaflood/peertab"], stdout=subprocess.PIPE).communicate()[0];
@@ -135,6 +133,22 @@ def readFileChunks(file, fileChunkSize=1024):
 			break;
 
 		yield data;
+
+def sendFile(server, file, connectionsSent, startTime, bandwidthLimit):
+
+	for data in readFileChunks(file, 1024):
+
+		while True:
+
+			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
+
+			if connectionsSent < bandwidthLimit:
+
+				server.send(data);
+				connectionsSent += 1;
+				break;
+
+	return connectionsSent, startTime;
 
 # Limit bandwidth usage to user defined maximum
 def limitBandwidth(connections, startTime, bandwidthLimit):
@@ -440,17 +454,7 @@ def main():
 	connectionsSent = 0;
 	startTime = time.time();
 
-	for data in readFileChunks(ttlFile, 1024):
-
-		while True:
-
-			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
-
-			if connectionsSent < bandwidthLimit:
-
-				server.send(data);
-				connectionsSent += 1;
-				break;
+	connectionsSent, startTime = sendFile(server, ttlFile, connectionsSent, startTime, bandwidthLimit);
 
 	time.sleep(1);
 
@@ -458,17 +462,7 @@ def main():
 
 	time.sleep(1);
 
-	for data in readFileChunks(garbagefile, 1024):
-
-		while True:
-
-			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
-
-			if connectionsSent < bandwidthLimit:
-
-				server.send(data);
-				connectionsSent += 1;
-				break;
+	connectionsSent, startTime = sendFile(server, garbagefile, connectionsSent, startTime, bandwidthLimit);
 
 	time.sleep(1);
 
@@ -476,17 +470,7 @@ def main():
 
 	time.sleep(1);
 
-	for data in readFileChunks(garbagekey, 1024):
-
-		while True:
-
-			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
-
-			if connectionsSent < bandwidthLimit:
-
-				server.send(data);
-				connectionsSent += 1;
-				break;
+	connectionsSent, startTime = sendFile(server, garbagekey, connectionsSent, startTime, bandwidthLimit);
 
 	time.sleep(1);
 
@@ -506,6 +490,8 @@ if __name__ == "__main__":
 
 	confParse = ConfigParser.RawConfigParser();
 	confParse.read(confFile);
+
+	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
 
 	main();
 
