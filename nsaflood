@@ -188,6 +188,16 @@ def readFileChunks(file, fileChunkSize=1024):
 
 		yield data;
 
+def readFile(file):
+
+	fileContents = "";
+
+	for data in readFileChunks(file, 1024):
+
+		fileContents += data;
+
+	return fileContents;
+
 def sendFile(file, connectionsSent, startTime, server, bandwidthLimit):
 
 	print "nsaflood: Sending " + file + ".";
@@ -270,9 +280,7 @@ def writeFiles(connection, address, server, bandwidthLimit):
 	garbagefile = decryptFile(garbagefile, garbagekey, "garbagefile");
 	ttlFile = decryptFile(ttlFile, garbagekey, "ttlfile");
 
-	ttlFilePointer = open(ttlFile, "r");
-	garbagefileTTL = int(ttlFilePointer.read(1));
-	ttlFilePointer.close();
+	garbagefileTTL = int(readFile(ttlFile));
 
 	if (garbagefileTTL <= 8):
 
