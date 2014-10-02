@@ -116,6 +116,24 @@ def createGarbagefile():
 
 	return garbagefile;
 
+def stepTTL():
+
+	if args.ttl == None and args.file == None:
+
+		ttl = defaultTTL;
+
+	elif args.ttl == None:
+
+		ttl = 9;
+
+	elif args.ttl > 0:
+
+		ttl = int(args.ttl) - 1;
+
+	print "nsaflood: TTL set to " + str(ttl) + ".";
+
+	return ttl;
+
 def encryptFile(file, key, fileName):
 
 	newFile = createFile(fileName);
@@ -330,28 +348,16 @@ def main():
 
 		garbagefile = createGarbagefile();
 
-	if args.ttl != None:
+	garbagefileTTL = stepTTL();
 
-		garbagefileTTL = int(args.ttl) - 1;
+	if garbagefileTTL == 0:
 
-		print "nsaflood: Provided TTL decremented to " + str(garbagefileTTL) + ".";
+		print "nsaflood: The TTL of " + garbagefile + " is 0.";
+		print "nsaflood: The garbagefile will be deleted.";
 
-	try:
+		os.remove(garbagefile);
 
-		if garbagefileTTL == 0:
-
-			print "nsaflood: The TTL of " + garbagefile + " is 0.";
-			print "nsaflood: The garbagefile will be deleted.";
-
-			os.remove(garbagefile);
-
-			return 0;
-
-	except NameError:
-
-		garbagefileTTL = defaultTTL;
-
-		print "nsaflood: TTL set to " + str(defaultTTL) + ".";
+		return 0;
 
 	server = socket.socket();
 	port = 17666;
