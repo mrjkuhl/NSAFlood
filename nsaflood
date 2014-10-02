@@ -92,7 +92,7 @@ def createGarbagefile():
 
 	if args.file == None:
 
-		garbagefileSize += varyGarbagefileSize(garbagefileSize, 0.9);
+		garbagefileSize += varyGarbagefileSize(garbagefileSize, 0.09);
 		garbagefile = createFile("garbagefile", garbagefileSize);
 
 	if args.file:
@@ -100,7 +100,7 @@ def createGarbagefile():
 		fileSize = subprocess.Popen(["wc", "-c", args.file], stdout=subprocess.PIPE).communicate()[0];
 		fileSize = fileSize.split(" ")[0];
 
-		garbagefileSize += varyGarbagefileSize(garbagefileSize, 1.0);
+		garbagefileSize += varyGarbagefileSize(garbagefileSize, 0.1);
 		garbagefileSize = garbagefileSize - int(fileSize);
 
 		garbagefileFiller = createFile("garbagefile", garbagefileSize);
