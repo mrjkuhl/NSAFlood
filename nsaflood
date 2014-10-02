@@ -274,9 +274,6 @@ def writeFiles(connection, address, server, bandwidthLimit):
 	garbagefileTTL = int(ttlFilePointer.read(1));
 	ttlFilePointer.close();
 
-	os.remove(ttlFile);
-	os.remove(garbagekey);
-
 	if (garbagefileTTL <= 8):
 
 		subprocess.call(["nsaflood", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
@@ -284,6 +281,15 @@ def writeFiles(connection, address, server, bandwidthLimit):
 	elif (garbagefileTTL == 9):
 
 		subprocess.call(["tar", "-xf", garbagefile]);
+
+		printServerOutput("Garbagefile was hidden file");
+
+		garbagefile = encryptFile(garbagefile, garbagekey, "garbagefile");
+
+		subprocess.call(["nsaflood", "--garbage-file", garbagefile, "--ttl", str(defaultTTL)]);
+
+	os.remove(ttlFile);
+	os.remove(garbagekey);
 
 	return;
 
