@@ -321,16 +321,6 @@ def startServer():
 
 def main():
 
-	if args.start_server:
-
-		startServer();
-		return 0;
-
-	if args.version:
-
-		print "poop";
-		return 0;
-
 	if args.host:
 
 		host = args.host;
@@ -485,5 +475,15 @@ if __name__ == "__main__":
 
 	args = parser.parse_args();
 
-	main();
+	if args.start_server:
+
+		startServer();
+
+	elif args.version:
+
+		print "poop";
+
+	else:
+
+		main();
 
