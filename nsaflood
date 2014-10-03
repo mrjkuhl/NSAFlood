@@ -58,6 +58,50 @@ def selectPeer(unreachableHosts=[]):
 
 	return selectedHost;
 
+def getConnection(host, port, server):
+
+	connectAttempts = 0;
+	unreachableHosts = [];
+
+	while True:
+
+		try:
+
+			server.connect((host, port));
+
+			break;
+
+		except socket.error:
+
+			connectAttempts += 1;
+
+			if connectAttempts == defaultConnectAttempts:
+
+				print "nsaflood: failed to connect to a host " + str(defaultConnectAttempts) + " times.";
+				print "nsaflood: Now exiting.";
+
+				os.remove(garbagefile);
+
+				return 1;
+
+			print "nsaflood: Connection to " + host + " timed out.";
+
+			unreachableHosts.append(host);
+			host = selectPeer(unreachableHosts);
+
+			if host.isdigit():
+
+				print "nsaflood: selectPeer() failed to find a new peer.";
+				print "nsaflood: Now exiting."
+
+				os.remove(garbagefile);
+
+				return 1;
+
+			print "nsaflood: " + host + " selected.";
+
+	return host, server;
+
 def printServerOutput(message):
 
 	print time.strftime("%H:%M:%S") + " nsaflood server: " + message + ".";
@@ -366,47 +410,7 @@ def main():
 	server = socket.socket();
 	port = 17666;
 
-	connectAttempts = 0;
-	unreachableHosts = [];
-
-	while True:
-
-		try:
-
-			server.connect((host, port));
-
-			connectAttempts = None;
-			unreachableHosts = None;
-			break;
-
-		except socket.error:
-
-			connectAttempts += 1;
-
-			if connectAttempts == defaultConnectAttempts:
-
-				print "nsaflood: failed to connect to a host " + str(defaultConnectAttempts) + " times.";
-				print "nsaflood: Now exiting.";
-
-				os.remove(garbagefile);
-
-				return 1;
-
-			print "nsaflood: Connection to " + host + " timed out.";
-
-			unreachableHosts.append(host);
-			host = selectPeer(unreachableHosts);
-
-			if host.isdigit():
-
-				print "nsaflood: selectPeer() failed to find a new peer.";
-				print "nsaflood: Now exiting."
-
-				os.remove(garbagefile);
-
-				return 1;
-
-			print "nsaflood: " + host + " selected.";
+	host, server = getConnection(host, port, server);
 
 	publickey = "/etc/nsaflood/pubkeys/" + host;
 	garbagekey = createFile("garbagekey", defaultKeyfileSize);
