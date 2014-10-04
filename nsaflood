@@ -22,12 +22,10 @@ import socket
 import argparse
 import linecache
 import ConfigParser
-
 import time
 
 defaultTTL=8;
 defaultKeyfileSize=256;
-defaultConnectAttempts=5;
 
 def selectPeer(unreachableHosts=[]):
 
@@ -77,9 +75,9 @@ def getConnection(host):
 
 			connectAttempts += 1;
 
-			if connectAttempts == defaultConnectAttempts:
+			if connectAttempts == maxConnectAttempts:
 
-				print "nsaflood: failed to connect to a host " + str(defaultConnectAttempts) + " times.";
+				print "nsaflood: failed to connect to a host " + str(maxConnectAttempts) + " times.";
 				print "nsaflood: Now exiting.";
 
 				os.remove(garbagefile);
@@ -462,15 +460,16 @@ def main():
 
 if __name__ == "__main__":
 
-	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
-	port = 17666;
-	server = socket.socket();
-	bandwidthLimit = 0;
-
 	confFile = r'/etc/nsaflood/nsaflood.conf';
 
 	confParse = ConfigParser.RawConfigParser();
 	confParse.read(confFile);
+
+	bandwidthLimit = 0;
+	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
+	maxConnectAttempts = int(confParse.get('client', 'DEFAULTCONNECTATTEMPTS')) / 8;
+	port = 17666;
+	server = socket.socket();
 
 	parser = argparse.ArgumentParser();
 
