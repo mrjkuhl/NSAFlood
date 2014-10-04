@@ -383,6 +383,7 @@ def startServer():
 def main():
 
 	global bandwidthLimit;
+	files = [0] * 3;
 
 	if args.host:
 
@@ -407,71 +408,57 @@ def main():
 
 	if args.garbage_file:
 
-		garbagefile = args.garbage_file;
+		files[1] = args.garbage_file;
 
-		print "nsaflood: Garbagefile " + garbagefile + " provided";
+		print "nsaflood: Garbagefile " + files[1] + " provided";
 
 	else:
 
-		garbagefile = createGarbagefile();
+		files[1] = createGarbagefile();
 
 	garbagefileTTL = stepTTL();
 
 	if garbagefileTTL == 0:
 
-		print "nsaflood: The TTL of " + garbagefile + " is 0.";
+		print "nsaflood: The TTL of " + files[1] + " is 0.";
 		print "nsaflood: The garbagefile will be deleted.";
 
-		os.remove(garbagefile);
+		os.remove(files[1]);
 
 		return 0;
 
 	host = getConnection(host);
 
 	publickey = "/etc/nsaflood/pubkeys/" + host;
-	garbagekey = createFile("garbagekey", defaultKeyfileSize);
-	ttlFile = createFile("ttlfile");
+	files[0] = createFile("ttlfile");
+	files[2] = createFile("garbagekey", defaultKeyfileSize);
 
-	ttlFilePointer = open(ttlFile, 'w');
+	ttlFilePointer = open(files[0], 'w');
 	ttlFilePointer.write(str(garbagefileTTL));
 	ttlFilePointer.close();
 
-	ttlFile = encryptFile(ttlFile, garbagekey, "ttlfile");
-	garbagefile = encryptFile(garbagefile, garbagekey, "garbagefile");
-	garbagekey = rsaEncryptFile(garbagekey, publickey, "garbagekey");
+	files[0] = encryptFile(files[0], files[2], "ttlfile");
+	files[1] = encryptFile(files[1], files[2], "garbagefile");
+	files[2] = rsaEncryptFile(files[2], publickey, "garbagekey");
 
 	connectionsSent = 0;
 	startTime = time.time();
 
-	connectionsSent, startTime = sendFile(ttlFile, connectionsSent, startTime);
+	for file in files:
 
-	time.sleep(1);
+		connectionsSent, startTime = sendFile(file, connectionsSent, startTime);
 
-	server.send(fileDelimiter);
+		time.sleep(1);
 
-	time.sleep(1);
+		server.send(fileDelimiter);
 
-	connectionsSent, startTime = sendFile(garbagefile, connectionsSent, startTime);
+		time.sleep(1);
 
-	time.sleep(1);
-
-	server.send(fileDelimiter);
-
-	time.sleep(1);
-
-	connectionsSent, startTime = sendFile(garbagekey, connectionsSent, startTime);
-
-	time.sleep(1);
-
-	server.send(fileDelimiter);
+		os.remove(file);
 
 	print "Finished file transfer.";
 
 	server.close();
-
-	os.remove(ttlFile);
-	os.remove(garbagefile);
-	os.remove(garbagekey);
 
 if __name__ == "__main__":
 
