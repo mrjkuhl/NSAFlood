@@ -58,7 +58,9 @@ def selectPeer(unreachableHosts=[]):
 
 	return selectedHost;
 
-def getConnection(host, port, server):
+def getConnection(host):
+
+	global server;
 
 	connectAttempts = 0;
 	unreachableHosts = [];
@@ -100,7 +102,7 @@ def getConnection(host, port, server):
 
 			print "nsaflood: " + host + " selected.";
 
-	return host, server;
+	return host;
 
 def printServerOutput(message):
 
@@ -242,7 +244,9 @@ def readFile(file):
 
 	return fileContents;
 
-def sendFile(file, connectionsSent, startTime, server, bandwidthLimit):
+def sendFile(file, connectionsSent, startTime):
+
+	global server;
 
 	print "nsaflood: Sending " + file + ".";
 
@@ -250,7 +254,7 @@ def sendFile(file, connectionsSent, startTime, server, bandwidthLimit):
 
 		while True:
 
-			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime, bandwidthLimit);
+			connectionsSent, startTime = limitBandwidth(connectionsSent, startTime);
 
 			if connectionsSent < bandwidthLimit:
 
@@ -262,7 +266,7 @@ def sendFile(file, connectionsSent, startTime, server, bandwidthLimit):
 
 	return connectionsSent, startTime;
 
-def receiveFile(file, connectionsReceived, startTime, connection, bandwidthLimit, excessData=""):
+def receiveFile(file, connectionsReceived, startTime, connection, excessData=""):
 
 	filePointer = open(file, "a");
 	filePointer.write(excessData);
@@ -271,7 +275,7 @@ def receiveFile(file, connectionsReceived, startTime, connection, bandwidthLimit
 
 	while True:
 
-		connectionsReceived, startTime = limitBandwidth(connectionsReceived, startTime, bandwidthLimit);
+		connectionsReceived, startTime = limitBandwidth(connectionsReceived, startTime);
 
 		if connectionsReceived < bandwidthLimit:
 
@@ -294,7 +298,7 @@ def receiveFile(file, connectionsReceived, startTime, connection, bandwidthLimit
 	return connectionsReceived, startTime, excessData;
 
 # Limit bandwidth usage to user defined maximum
-def limitBandwidth(connections, startTime, bandwidthLimit):
+def limitBandwidth(connections, startTime):
 
 	if time.time() >= startTime + 1:
 
@@ -307,7 +311,7 @@ def limitBandwidth(connections, startTime, bandwidthLimit):
 
 	return connections, startTime;
 
-def writeFiles(connection, address, server, bandwidthLimit):
+def writeFiles(connection, address):
 
 	garbagefile = createFile("garbagefile");
 	garbagekey = createFile("garbagekey");
@@ -316,9 +320,9 @@ def writeFiles(connection, address, server, bandwidthLimit):
 	connectionsReceived = 0;
 	startTime = time.time();
 
-	connectionsReceived, startTime, excessData = receiveFile(ttlFile, connectionsReceived, startTime, connection, bandwidthLimit);
-	connectionsReceived, startTime, excessData = receiveFile(garbagefile, connectionsReceived, startTime, connection, bandwidthLimit, excessData);
-	connectionsReceived, startTime, excessData = receiveFile(garbagekey, connectionsReceived, startTime, connection, bandwidthLimit, excessData);
+	connectionsReceived, startTime, excessData = receiveFile(ttlFile, connectionsReceived, startTime, connection);
+	connectionsReceived, startTime, excessData = receiveFile(garbagefile, connectionsReceived, startTime, connection, excessData);
+	connectionsReceived, startTime, excessData = receiveFile(garbagekey, connectionsReceived, startTime, connection, excessData);
 
 	garbagekey = rsaDecryptFile(garbagekey, "/etc/nsaflood/privatekey", "garbagekey");
 	garbagefile = decryptFile(garbagefile, garbagekey, "garbagefile");
@@ -347,12 +351,12 @@ def writeFiles(connection, address, server, bandwidthLimit):
 
 def startServer():
 
+	global bandwidthLimit;
 	bandwidthLimit = int(confParse.get('server', 'DEFAULTBANDWIDTH')) / 8;
 
-	server = socket.socket();
-
 	host = socket.gethostname();
-	port = 17666;
+
+	global server;
 
 	server.bind((host, port));
 	server.listen(5);
@@ -361,9 +365,11 @@ def startServer():
 
 		connection, address = server.accept();
 
-		writeFiles(connection, address, server, bandwidthLimit);
+		writeFiles(connection, address);
 
 def main():
+
+	global bandwidthLimit;
 
 	if args.host:
 
@@ -407,10 +413,7 @@ def main():
 
 		return 0;
 
-	server = socket.socket();
-	port = 17666;
-
-	host, server = getConnection(host, port, server);
+	host = getConnection(host);
 
 	publickey = "/etc/nsaflood/pubkeys/" + host;
 	garbagekey = createFile("garbagekey", defaultKeyfileSize);
@@ -427,7 +430,7 @@ def main():
 	connectionsSent = 0;
 	startTime = time.time();
 
-	connectionsSent, startTime = sendFile(ttlFile, connectionsSent, startTime, server, bandwidthLimit);
+	connectionsSent, startTime = sendFile(ttlFile, connectionsSent, startTime);
 
 	time.sleep(1);
 
@@ -435,7 +438,7 @@ def main():
 
 	time.sleep(1);
 
-	connectionsSent, startTime = sendFile(garbagefile, connectionsSent, startTime, server, bandwidthLimit);
+	connectionsSent, startTime = sendFile(garbagefile, connectionsSent, startTime);
 
 	time.sleep(1);
 
@@ -443,7 +446,7 @@ def main():
 
 	time.sleep(1);
 
-	connectionsSent, startTime = sendFile(garbagekey, connectionsSent, startTime, server, bandwidthLimit);
+	connectionsSent, startTime = sendFile(garbagekey, connectionsSent, startTime);
 
 	time.sleep(1);
 
@@ -459,12 +462,15 @@ def main():
 
 if __name__ == "__main__":
 
+	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
+	port = 17666;
+	server = socket.socket();
+	bandwidthLimit = 0;
+
 	confFile = r'/etc/nsaflood/nsaflood.conf';
 
 	confParse = ConfigParser.RawConfigParser();
 	confParse.read(confFile);
-
-	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
 
 	parser = argparse.ArgumentParser();
 
