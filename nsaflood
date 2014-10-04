@@ -326,39 +326,42 @@ def limitBandwidth(connections, startTime):
 
 def writeFiles(connection, address):
 
-	garbagefile = createFile("garbagefile");
-	garbagekey = createFile("garbagekey");
-	ttlFile = createFile("ttlfile");
+	files = [0] * 3;
+
+	files[0] = createFile("ttlfile");
+	files[1] = createFile("garbagefile");
+	files[2] = createFile("garbagekey");
 
 	connectionsReceived = 0;
 	startTime = time.time();
+	excessData = "";
 
-	connectionsReceived, startTime, excessData = receiveFile(ttlFile, connectionsReceived, startTime, connection);
-	connectionsReceived, startTime, excessData = receiveFile(garbagefile, connectionsReceived, startTime, connection, excessData);
-	connectionsReceived, startTime, excessData = receiveFile(garbagekey, connectionsReceived, startTime, connection, excessData);
+	for file in files:
 
-	garbagekey = rsaDecryptFile(garbagekey, "/etc/nsaflood/privatekey", "garbagekey");
-	garbagefile = decryptFile(garbagefile, garbagekey, "garbagefile");
-	ttlFile = decryptFile(ttlFile, garbagekey, "ttlfile");
+		connectionsReceived, startTime, excessData = receiveFile(file, connectionsReceived, startTime, connection, excessData);
 
-	garbagefileTTL = int(readFile(ttlFile));
+	files[2] = rsaDecryptFile(files[2], "/etc/nsaflood/privatekey", "garbagekey");
+	files[1] = decryptFile(files[1], files[2], "garbagefile");
+	files[0] = decryptFile(files[0], files[2], "ttlfile");
+
+	garbagefileTTL = int(readFile(files[0]));
 
 	if (garbagefileTTL <= 8):
 
-		subprocess.call(["nsaflood", "--garbage-file", garbagefile, "--ttl", str(garbagefileTTL)]);
+		subprocess.call(["nsaflood", "--garbage-file", files[1], "--ttl", str(garbagefileTTL)]);
 
 	elif (garbagefileTTL == 9):
 
-		subprocess.call(["tar", "-xf", garbagefile]);
+		subprocess.call(["tar", "-xf", files[1]]);
 
 		printServerOutput("Garbagefile was hidden file");
 
-		garbagefile = encryptFile(garbagefile, garbagekey, "garbagefile");
+		files[1] = encryptFile(files[1], files[2], "garbagefile");
 
-		subprocess.call(["nsaflood", "--garbage-file", garbagefile, "--ttl", str(defaultTTL)]);
+		subprocess.call(["nsaflood", "--garbage-file", files[1], "--ttl", str(defaultTTL)]);
 
-	os.remove(ttlFile);
-	os.remove(garbagekey);
+	os.remove(files[0]);
+	os.remove(files[2]);
 
 	return;
 
