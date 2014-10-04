@@ -132,10 +132,7 @@ def createFile(fileName, fileSize=0):
 	fileName = subprocess.Popen(["mktemp", "--tmpdir", "nsaflood-" + fileName + ".XXXX"], stdout=subprocess.PIPE);
 	fileName = fileName.communicate()[0].splitlines()[0];
 
-	file = open(fileName, 'w');
-
-	file.write(os.urandom(fileSize));
-	file.close();
+	writeFile(fileName, 'w', os.urandom(fileSize));
 
 	return fileName;
 
@@ -257,6 +254,14 @@ def readFile(file):
 
 	return fileContents;
 
+def writeFile(file, mode, data):
+
+	filePointer = open(file, mode);
+
+	filePointer.write(data);
+
+	filePointer.close();
+
 def sendFile(file, connectionsSent, startTime):
 
 	global server;
@@ -324,7 +329,7 @@ def limitBandwidth(connections, startTime):
 
 	return connections, startTime;
 
-def writeFiles(connection, address):
+def getFiles(connection, address):
 
 	files = [0] * 3;
 
@@ -381,7 +386,7 @@ def startServer():
 
 		connection, address = server.accept();
 
-		writeFiles(connection, address);
+		getFiles(connection, address);
 
 def main():
 
@@ -436,9 +441,7 @@ def main():
 	files[0] = createFile("ttlfile");
 	files[2] = createFile("garbagekey", defaultKeyfileSize);
 
-	ttlFilePointer = open(files[0], 'w');
-	ttlFilePointer.write(str(garbagefileTTL));
-	ttlFilePointer.close();
+	writeFile(files[0], 'w', str(garbagefileTTL));
 
 	files[0] = encryptFile(files[0], files[2], "ttlfile");
 	files[1] = encryptFile(files[1], files[2], "garbagefile");
