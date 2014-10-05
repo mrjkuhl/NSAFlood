@@ -24,8 +24,13 @@ import linecache
 import ConfigParser
 import time
 
-defaultTTL=8;
-defaultKeyfileSize=256;
+def readConfig():
+
+	confFile = r'/etc/nsaflood/nsaflood.conf';
+	config = ConfigParser.RawConfigParser();
+	config.read(confFile);
+
+	return config;
 
 def getArguments():
 
@@ -373,7 +378,7 @@ def getFiles(connection, address):
 def startServer():
 
 	global bandwidthLimit;
-	bandwidthLimit = int(confParse.get('server', 'DEFAULTBANDWIDTH')) / 8;
+	bandwidthLimit = int(config.get('server', 'DEFAULTBANDWIDTH')) / 8;
 
 	host = socket.gethostname();
 
@@ -412,7 +417,7 @@ def main():
 
 	else:
 
-		bandwidthLimit = int(confParse.get('client', 'DEFAULTBANDWIDTH')) / 8;
+		bandwidthLimit = int(config.get('client', 'DEFAULTBANDWIDTH')) / 8;
 
 	if args.garbage_file:
 
@@ -468,14 +473,13 @@ def main():
 
 if __name__ == "__main__":
 
-	confFile = r'/etc/nsaflood/nsaflood.conf';
-
-	confParse = ConfigParser.RawConfigParser();
-	confParse.read(confFile);
+	defaultTTL=8;
+	defaultKeyfileSize=256;
 
 	bandwidthLimit = 0;
+	config = readConfig();
 	fileDelimiter = "NSAFLOOD\r\n\r\nFILE TRANSFER";
-	maxConnectAttempts = int(confParse.get('client', 'DEFAULTCONNECTATTEMPTS')) / 8;
+	maxConnectAttempts = int(config.get('client', 'DEFAULTCONNECTATTEMPTS')) / 8;
 	port = 17666;
 	server = socket.socket();
 
