@@ -320,7 +320,6 @@ def receiveFile(file, connectionsReceived, startTime, connection, excessData="")
 
 	return connectionsReceived, startTime, excessData;
 
-# Limit bandwidth usage to user defined maximum
 def limitBandwidth(connections, startTime):
 
 	if time.time() >= startTime + 1:
@@ -375,7 +374,7 @@ def getFiles(connection, address):
 
 	return;
 
-def startServer():
+def serverListener():
 
 	global bandwidthLimit;
 	bandwidthLimit = int(config.get('server', 'DEFAULTBANDWIDTH')) / 8;
@@ -393,60 +392,17 @@ def startServer():
 
 		getFiles(connection, address);
 
-def main():
+def client(garbagefile, ttl, host):
 
 	global bandwidthLimit;
 	files = [0] * 3;
-
-	if args.host:
-
-		host = args.host;
-
-		print "nsaflood: Provided host is " + host + ".";
-
-	else:
-		print "nsaflood: Selecting host at random from peertab.";
-
-		host = selectPeer();
-
-		print "nsaflood: " + host + " selected.";
-
-	if args.bandwidth:
-
-		bandwidthLimit = int(args.bandwidth) / 8;
-
-	else:
-
-		bandwidthLimit = int(config.get('client', 'DEFAULTBANDWIDTH')) / 8;
-
-	if args.garbage_file:
-
-		files[1] = args.garbage_file;
-
-		print "nsaflood: Garbagefile " + files[1] + " provided";
-
-	else:
-
-		files[1] = createGarbagefile();
-
-	garbagefileTTL = stepTTL();
-
-	if garbagefileTTL == 0:
-
-		print "nsaflood: The TTL of " + files[1] + " is 0.";
-		print "nsaflood: The garbagefile will be deleted.";
-
-		os.remove(files[1]);
-
-		return 0;
-
-	host = getConnection(host);
+	files[1] = garbagefile;
 
 	publickey = "/etc/nsaflood/pubkeys/" + host;
 	files[0] = createFile("ttlfile");
 	files[2] = createFile("garbagekey", defaultKeyfileSize);
 
-	writeFile(files[0], 'w', str(garbagefileTTL));
+	writeFile(files[0], 'w', str(ttl));
 
 	files[0] = encryptFile(files[0], files[2], "ttlfile");
 	files[1] = encryptFile(files[1], files[2], "garbagefile");
@@ -471,6 +427,63 @@ def main():
 
 	server.close();
 
+def main():
+
+	if args.start_server:
+
+		serverListener();
+
+	elif args.version:
+
+		print "poop";
+
+	else:
+
+		if args.host:
+
+			host = args.host;
+
+			print "nsaflood: Provided host is " + host + ".";
+
+		else:
+
+			print "nsaflood: Selecting host at random from peertab.";
+
+			host = selectPeer();
+
+			print "nsaflood: " + host + " selected.";
+
+		if args.bandwidth:
+
+			bandwidthLimit = int(args.bandwidth) / 8;
+
+		else
+
+			bandwidthLimit = int(config.get('client', 'DEFAULTBANDWIDTH')) / 8;
+
+		if args.garbage_file:
+
+			garbagefile = args.garbage_file;
+
+			print "nsaflood: Garbagefile " + garbagefile + " provided";
+
+		else:
+
+			garbagefile = createGarbagefile();
+
+		garbagefileTTL = stepTTL();
+
+		if garbagefileTTL == 0:
+
+			print "nsaflood: The TTL of " + garbagefile + " is 0.";
+			print "nsaflood: The garbagefile will be deleted.";
+
+			os.remove(garbagefile);
+
+			return 0;
+
+		client(garbagefile, garbagefileTTL, getConnection(host));
+
 if __name__ == "__main__":
 
 	defaultTTL=8;
@@ -485,15 +498,4 @@ if __name__ == "__main__":
 
 	args = getArguments();
 
-	if args.start_server:
-
-		startServer();
-
-	elif args.version:
-
-		print "poop";
-
-	else:
-
-		main();
-
+	main();
