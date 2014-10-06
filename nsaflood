@@ -48,32 +48,15 @@ def getArguments():
 
 def selectPeer(unreachableHosts=[]):
 
-	lines = file("/etc/nsaflood/peertab", "r").readlines();
-	peersCount = len(lines);
+	allHosts = [line.strip() for line in open("/etc/nsaflood/peertab", "r")];
 
-	maxPeerFindAttempts = 50;
-	peerFindAttempts = 0;
+	untriedHosts = [host for host in allHosts if host not in unreachableHosts];
 
-	while True:
-		selectedHost = random.choice(lines).strip();
+	if not untriedHosts:
 
-		for host in unreachableHosts:
+		return 1;
 
-			if selectedHost == host:
-
-				selectedHost = None;
-
-		if selectedHost != None:
-
-			break;
-
-		peerFindAttempts += 1;
-
-		if peerFindAttempts == maxPeerFindAttempts:
-
-			return 1;
-
-	return selectedHost;
+	return random.choice(untriedHosts);
 
 def getConnection(host):
 
