@@ -22,6 +22,7 @@ import socket
 import argparse
 import ConfigParser
 import time
+import threading
 
 def readConfig():
 
@@ -368,11 +369,18 @@ def serverListener():
 	server.bind((host, port));
 	server.listen(5);
 
+	threadLimit = threading.BoundedSemaphore(5);
+
 	while True:
 
-		connection, address = server.accept();
+		threadLimit.acquire();
+		try:
+			connection, address = server.accept();
 
-		getFiles(connection, address);
+			t1 = threading.Thread(target = getFiles, args = (connection, address));
+			t1.start();
+		finally:
+			threadLimit.release();
 
 def client(garbagefile, ttl, host):
 
