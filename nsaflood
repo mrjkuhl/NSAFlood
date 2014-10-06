@@ -20,7 +20,6 @@ import random
 import subprocess
 import socket
 import argparse
-import linecache
 import ConfigParser
 import time
 
@@ -49,14 +48,14 @@ def getArguments():
 
 def selectPeer(unreachableHosts=[]):
 
-	peersCount = subprocess.Popen(["wc", "-l", "/etc/nsaflood/peertab"], stdout=subprocess.PIPE).communicate()[0];
-	peersCount = peersCount.split(" ")[0];
+	lines = file("/etc/nsaflood/peertab", "r").readlines();
+	peersCount = len(lines);
 
 	maxPeerFindAttempts = 50;
 	peerFindAttempts = 0;
 
 	while True:
-		selectedHost = linecache.getline('/etc/nsaflood/peertab', random.randrange(1, int(peersCount) + 1)).splitlines()[0];
+		selectedHost = random.choice(lines).strip();
 
 		for host in unreachableHosts:
 
