@@ -453,11 +453,13 @@ def main():
 
 			print "nsaflood: " + host + " selected.";
 
+		global bandwidthLimit;
+
 		if args.bandwidth:
 
 			bandwidthLimit = int(args.bandwidth) / 8;
 
-		else
+		else:
 
 			bandwidthLimit = int(config.get('client', 'DEFAULTBANDWIDTH')) / 8;
 
