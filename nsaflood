@@ -55,7 +55,7 @@ def selectPeer(unreachableHosts=[]):
 
 	if not untriedHosts:
 
-		return 1;
+		return "1";
 
 	return random.choice(untriedHosts);
 
@@ -83,9 +83,7 @@ def getConnection(host):
 				print "nsaflood: failed to connect to a host " + str(maxConnectAttempts) + " times.";
 				print "nsaflood: Now exiting.";
 
-				os.remove(garbagefile);
-
-				return 1;
+				return "1";
 
 			print "nsaflood: Connection to " + host + " timed out.";
 
@@ -97,9 +95,7 @@ def getConnection(host):
 				print "nsaflood: selectPeer() failed to find a new peer.";
 				print "nsaflood: Now exiting."
 
-				os.remove(garbagefile);
-
-				return 1;
+				return "1";
 
 			print "nsaflood: " + host + " selected.";
 
@@ -474,7 +470,15 @@ def main():
 
 			return 0;
 
-		client(garbagefile, garbagefileTTL, getConnection(host));
+		host = getConnection(host);
+
+		if host.isdigit():
+
+			os.remove(garbagefile);
+
+			return 1;
+
+		client(garbagefile, garbagefileTTL, host);
 
 if __name__ == "__main__":
 
