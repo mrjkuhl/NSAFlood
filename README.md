@@ -13,7 +13,9 @@ surveillance. NSAFlood achieves this goal through the transfer of encrypted data
 Installation
 ------------
 
-To install NSAFlood, you must move nsaflood to /usr/local/bin, and gzip nsaflood.1 into /usr/share/man/man1 as root.
+To install NSAFlood, you must move nsaflood to /usr/local/bin, and gzip 
+nsaflood.1 into /usr/share/man/man1, and move nsaflood.conf into /etc/nsaflood 
+as root.
 
 Usage
 -----
