@@ -47,7 +47,7 @@ def getArguments():
 
 	return parser.parse_args();
 
-def selectPeer(unreachableHosts=[]):
+def selectPeer(unreachableHosts=()):
 
 	allHosts = [line.strip() for line in open("/etc/nsaflood/peertab", "r")];
 
@@ -88,7 +88,7 @@ def getConnection(host):
 			print "nsaflood: Connection to " + host + " timed out.";
 
 			unreachableHosts.append(host);
-			host = selectPeer(unreachableHosts);
+			host = selectPeer(tuple(unreachableHosts));
 
 			if host.isdigit():
 
