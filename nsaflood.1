@@ -1,4 +1,4 @@
-.TH NSAFLOOD 1 "09/19/2014" "2.0"
+.TH NSAFLOOD 1 "09/19/2014" "1.0"
 .SH NAME
 nsaflood \- Flood the Internet with encrypted data
 .SH SYNOPSIS
@@ -6,14 +6,14 @@ nsaflood \- Flood the Internet with encrypted data
 [\fIoptions\fP]
 .SH DECRIPTION
 .B NSAFlood
-creates a file of junk data read from /dev/urandom, and transmits it across networked computers. NSAFlood was made specifically to combat Internet surveillance, by transmitting large amounts of encrypted data across the Internet, which the United States National Security Agency (NSA) must copy and store in its entirety, indefinatily, as is their policy for all encrypted Internet traffic.
+creates a file of junk data, encrypts it, and transmits it across networked computers. NSAFlood was made specifically to combat Internet surveillance, by transmitting large amounts of encrypted data across the Internet, which the United States National Security Agency (NSA) must copy and store in its entirety, indefinitely, as is their policy for all encrypted Internet traffic.
 
-It is recommended that you schedule nsaflood to run periodically through the crontab, and that you use a strong password or key for the user and host that you target with nsaflood.
+It is recommended that you schedule nsaflood to run periodically through the crontab.
 .SH OPTIONS
 .TP
 
-.BR \-h\ \fIuser@host\fR ", " \-\-host\ \fIuser@host\fR
-	Username and IP address of target machine.
+.BR \-h\ \fIhost\fR ", " \-\-host\ \fIhost\fR
+	IP address or URL of target machine.
 
 .TP
 .BR \-s\ \fIsize\fR ", " \-\-file-size\ \fIsize\fR
@@ -37,13 +37,9 @@ It is recommended that you schedule nsaflood to run periodically through the cro
 	Start the listening server.
 
 .TP
-.BR \-\-version\fR
+.BR \-V\fR
 	Get the version and copyright information of NSAFlood.
 
 .TP
 .BR \-h ", " \-\-help\fR
 	Get usage information for NSAFlood.
-
-.SH EXIT STATUS
-
-If NSAFlood has successfully generated and trasnfered the file, the return code will be 0. If the log file cannot be written to, the exit code will be 1. If not enough argument were specified, the exit code will be 2. If the user supplied a bogus argument, the exit code will be 3. If there was an error in the generation of the garbage file, the exit code will be 4. If there was an error in the transfer of the garbage file, the exit code will be 5.
