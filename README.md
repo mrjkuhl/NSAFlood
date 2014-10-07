@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 2.0 release of NSAFlood.
+This directory contains the 1.0 release of NSAFlood.
 
 About
 -----
@@ -13,16 +13,7 @@ surveillance. NSAFlood achieves this goal through the transfer of encrypted data
 Installation
 ------------
 
-To install NSAFlood, you must execute the install script as root.
-
-Installation messages:
-
-- [success!]: Indicates that the operation was successful (copying file to its 
-destination, creating directory, etc)
-- [FOUND!]: Indicates that the file, directory, or user was found, and so it 
-will not be overwritten (this does not apply to bin and man files).
-- [FAILURE!]: Indicates that there was a failure to perform  the operation. This
- will usually include a message indicating what the problem may have been
+To install NSAFlood, you must move nsaflood to /usr/local/bin, and gzip nsaflood.1 into /usr/share/man/man1 as root.
 
 Usage
 -----
@@ -31,7 +22,8 @@ Usage
 
 See the man page for documentation.
 
-To schedule nsaflood in the crontab, log in to root and edit the crontab.
+To schedule nsaflood in the crontab, log in to root and edit the crontab as 
+below:
 
 	* 2 * * * root /usr/local/bin/nsaflood --file-size 1000 --host www.newphoenixrise.com
 
