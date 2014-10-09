@@ -47,4 +47,4 @@ To verify the integrity of the archive contents, you need to check the signature
 If you do not have the public key needed to verify the MD5SUMS signature, 
 download it as so:
 
-	gpg --keyserver keys.gnupg.net --recv-key 0x01139e11ff940f07
+	gpg --keyserver pgp.mit.edu --recv-key 0x107d24614a65e591
