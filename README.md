@@ -1,7 +1,7 @@
 NSAFlood
 --------
 
-This directory contains the 1.0.1 release of NSAFlood.
+This directory contains the 1.0.2 release of NSAFlood.
 
 About
 -----
@@ -13,9 +13,7 @@ surveillance. NSAFlood achieves this goal through the transfer of encrypted data
 Installation
 ------------
 
-To install NSAFlood, you must move nsaflood to /usr/local/bin, move 
-nsaflood.conf into /etc/nsaflood, and gzip nsaflood.1 into /usr/share/man/man1 
-as root.
+To install NSAFlood, you must call make as root.
 
 Usage
 -----
@@ -42,7 +40,7 @@ To verify the integrity of the archive contents, you need to check the signature
  of the MD5SUMS file, then compare the individual file sums, like follows:
 
 	gpg --verify MD5SUMS.sig MD5SUMS
-	sha512sum file
+	sha256sum file
 
 If you do not have the public key needed to verify the MD5SUMS signature, 
 download it as so:
