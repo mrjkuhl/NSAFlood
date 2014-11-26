@@ -24,6 +24,14 @@ import ConfigParser
 import time
 import threading
 
+def printVersion():
+
+	print ("NSAFlood 1.0.3\n"
+"Copyright 2014 Joel Cool-Panama <mr.jkuhl@gmail.com>\n"
+"License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANY, to the extent permitted by law.");
+
 def readConfig():
 
 	confFile = r'/etc/nsaflood/nsaflood.conf';
@@ -421,7 +429,7 @@ def main():
 
 	elif args.version:
 
-		print "poop";
+		printVersion();
 
 	else:
 
