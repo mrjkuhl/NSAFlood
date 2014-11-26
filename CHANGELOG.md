@@ -1,4 +1,8 @@
 
+1.0.3
+-----
+- Added the long overlooked --version functionality
+
 1.0.2
 -----
 - Added Makefile for easy installation
